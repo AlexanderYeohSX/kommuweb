@@ -412,9 +412,9 @@ h6 {
 }
 
 .btn-order {
-    height:80px;
-    line-height:75px;
-    font-size:25px;
+    height:40px;
+    line-height:40px;
+    font-size:18px;
 }
 
 @media(max-width:1499px) {
