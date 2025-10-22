@@ -1658,7 +1658,7 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="s1-section-copy section-copy--center">
           <button onclick="goToBuyPage()"
             class="h5 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-full text-white">Pre-order</button>
-          <p id="heroPriceLineKA2" class="h5 text-gray-light pt-4">RM3,699 or RM125/mo. for 36 months (RTO only available after 22nd Nov)</p>
+          <p id="heroPriceLineKA2" class="h5 text-gray-light pt-4">RM3,699 or RM125/mo. for 36 months (RTO only available after 5th Jan)</p>
         <script>
           (function(){
             function renderKA2HeroPrice(){
@@ -1687,7 +1687,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 if (!p) return;
 
                 if (monthly > 0) {
-                  p.textContent = `${fmt.format(device)} or ${fmt.format(monthly)}/mo. for ${months} months (RTO only available after 22nd Nov)`;
+                  p.textContent = `${fmt.format(device)} or ${fmt.format(monthly)}/mo. for ${months} months (RTO only available after 5th Jan)`;
                 } else {
                   // Fallback: show one-off price only
                   p.textContent = `${fmt.format(device)}`;
