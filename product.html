@@ -89,12 +89,12 @@ title: Buy KommuAssist 2
     <h1 class="h4" style="color: #f06102;">New</h1>
     <h1 class="h1 font-bold text-white mb-2">KommuAssist 2</h1>
     <p class="h5 text-gray-light">
-      <span id="heroOneOffPrice" ></span><br>
-      <span id="heroSlashedPrice" class="slashed-price"></span><span id="heroTax"></span><span id="heroMonthly"></span>
+      <span id="heroOneOffPrice" ></span>
+      <!--<span id="heroSlashedPrice" class="slashed-price"></span>--><span id="heroTax"></span><br><span id="heroMonthly"></span>
     </p>
-    <p class="h5 text-gray-light mt-2">
-      Pre-order now. Ship in Jan 2026.
-    </p>
+    <!--<p class="h5 text-gray-light mt-2">
+      Pre-order now. Ship before December 2025.
+    </p>-->
   </div>
 
   <!-- Main content: Image and Options Side-by-Side -->
@@ -199,7 +199,8 @@ title: Buy KommuAssist 2
         >
           <div class="text-left w-[60%]">
             <p class="h5 text-white">One-off</p>
-            <p id="payOneOffSaveAmt" class="h6 text-gray"></p>          
+            <!--<p id="payOneOffSaveAmt" class="h6 text-gray"></p>-->
+            <p class="h6 text-gray">With 1 year warranty included</p>
           </div>
           <span id="payOneOffPrice" class="w-[40%] h6 text-white text-right"></span>
         </button>
@@ -588,7 +589,7 @@ title: Buy KommuAssist 2
         if (isPermanent) {
           b.disabled = true;
           b.classList.add('opacity-50','pointer-events-none','cursor-not-allowed');
-          setButtonOverlay(b, message || 'RTO only available after 22nd Nov');
+          setButtonOverlay(b, message || 'RTO only available after 5th Jan');
         } else {
           b.disabled = false;
           b.classList.remove('opacity-50','pointer-events-none','cursor-not-allowed');
@@ -824,7 +825,7 @@ title: Buy KommuAssist 2
         title: 'Self‑installation help',
         body: `Prefer DIY? Follow our step‑by‑step video guide.
                <ul class="list-disc pl-5 mt-2">
-           <br><li>Installation video <a href="{{ 'https://www.youtube.com/watch?v=2EpnMwpINpE' | relative_url }}" class="underline text-gray-light" target="_blank" rel="noopener noreferrer">youtube link</a></li>
+           <br><li>Installation video <a href="{{ 'https://www.youtube.com/watch?v=lzCoMxFTCnc' | relative_url }}" class="underline text-gray-light" target="_blank" rel="noopener noreferrer">youtube link</a></li>
            <br><li>Use the same setup and connectors as KA1/KA1s except for a new mount.</li>
            <br><li>Reach support if you need help during setup.</li>
          </ul>
