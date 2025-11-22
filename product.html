@@ -572,7 +572,7 @@ title: Buy KommuAssist 2
           // keep it disabled and overlaid
           b.disabled = true;
           b.classList.add('opacity-50','pointer-events-none','cursor-not-allowed');
-          setButtonOverlay(b, message || 'RTO only available after 22nd Nov');
+          setButtonOverlay(b, message || 'RTO only available after 5th Jan');
         } else {
           b.disabled = false;
           b.classList.remove('opacity-50','pointer-events-none','cursor-not-allowed');
@@ -589,7 +589,7 @@ title: Buy KommuAssist 2
         if (isPermanent) {
           b.disabled = true;
           b.classList.add('opacity-50','pointer-events-none','cursor-not-allowed');
-          setButtonOverlay(b, message || 'RTO only available after 22nd Nov');
+          setButtonOverlay(b, message || 'RTO only available after 5th Jan');
         } else {
           b.disabled = false;
           b.classList.remove('opacity-50','pointer-events-none','cursor-not-allowed');
@@ -736,7 +736,7 @@ title: Buy KommuAssist 2
           discount = 0;
         }
         if (discount != 0 ) {
-          saveEl.textContent = `Save ${fmt.format(discount)} during pre-order launch until 22nd Oct`;
+          saveEl.textContent = `Save ${fmt.format(discount)} during pre-order launch until 22nd Nov`;
 
         } else {
           saveEl.textContent = '';
