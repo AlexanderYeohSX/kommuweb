@@ -19,7 +19,7 @@
 - product: KommuAssist2
   type: subscription
   label: "Trade-in"
-  valid_from: 2025-11-22
+  valid_from: 2026-01-05
   valid_until: 2099-12-31
   month: 24
   id: plan_RArSzTfEiEsykX
