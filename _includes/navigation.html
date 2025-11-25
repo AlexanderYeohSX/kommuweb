@@ -152,7 +152,9 @@
 
   function getCurrencyCode(locale) {
     const country = locale.split("-")[1] || "US";
-    const currencyMap = { MY: "MYR", US: "USD", SG: "SGD", JP: "JPY", GB: "GBP" };
+    // const currencyMap = { MY: "MYR", US: "USD", SG: "SGD", JP: "JPY", GB: "GBP" };
+    const currencyMap = { MY: "MYR", US: "USD" };
+
     return currencyMap[country] || "USD";
   }
 
