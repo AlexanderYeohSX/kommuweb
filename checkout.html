@@ -201,7 +201,7 @@ title: Checkout
 <script>
   const shippingConfig = {{ site.data.shipping | jsonify }};
   const locale    = KommuPricing.getPreferredLocale();
-  const   = KommuPricing.getCurrencyCode(locale);
+  const currency  = KommuPricing.getCurrencyCode(locale);
   const formatter = KommuPricing.getFormatter(locale);
 
   // Format currency without a space between currency and digits (e.g., RM650.00)
