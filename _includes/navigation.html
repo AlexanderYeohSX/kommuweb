@@ -101,7 +101,16 @@
   // })();
   async function getGeoLocale() {
     const saved = localStorage.getItem("preferredLocale");
-    if (saved) return saved;
+    if (saved) {
+      // allow only en-MY or en-US; anything else becomes en-US AND update stored value
+      const allowed = ["en-MY", "en-US"];
+      if (!allowed.includes(saved)) {
+        const normalized = "en-US";
+        localStorage.setItem("preferredLocale", normalized);
+        return normalized;
+      }
+      return saved;
+    }
 
     const browserLang =  "en";
     let locale = "en-MY";
