@@ -30,3 +30,9 @@
   rates:
     MYR: 250
     USD: 59.00
+
+- code: SL
+  name: Sri Lanka
+  rates:
+    MYR: 149
+    USD: 39.00
