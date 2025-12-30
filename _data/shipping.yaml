@@ -36,3 +36,9 @@
   rates:
     MYR: 149
     USD: 39.00
+
+- code: DE
+  name: Denmark
+  rates:
+    MYR: 249
+    USD: 62.00
