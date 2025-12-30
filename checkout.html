@@ -269,7 +269,7 @@ title: Checkout
         // Device pricing (promo-aware)
         const deviceOneOff  = KommuPricing.getDevicePriceByCurrency(currency,  promoLabels);
         const deviceMonthly = KommuPricing.getDeviceMonthlyByCurrency(currency, promoLabels);
-
+        const deposit = KommuPricing.getDeviceDepositByCurrency(currency, promoLabels);
         // Bundled add-ons from selections (promo/rule-aware)
         const bundled = KommuPricing.getAddonSurchargeFromSelections(selections, currency, thenBlock);
 
@@ -297,7 +297,7 @@ title: Checkout
           }
         }
 
-        return { thenBlock, promoLabels, deviceOneOff, deviceMonthly: (typeof _monthlyOverride === 'number' ? _monthlyOverride : deviceMonthly), bundled, months, subscriptionId };
+        return { thenBlock, promoLabels, deviceOneOff, deviceMonthly: (typeof _monthlyOverride === 'number' ? _monthlyOverride : deviceMonthly), bundled, months, subscriptionId, deposit };
 
     }
   }
@@ -571,7 +571,7 @@ title: Checkout
 
       if (defaultCountryCode === 'MY') {
         (function(){
-          const { deviceOneOff, deviceMonthly, bundled, months } = computePricingForSelections(selections);
+          const { deviceOneOff, deviceMonthly, bundled, months, deposit } = computePricingForSelections(selections);
           const payIsRTO = /rent-to-own/i.test(selections.payment||'');
           const years = (months%12===0) ? (months/12) : null;
 
@@ -588,7 +588,16 @@ title: Checkout
             <p class="h5 text-gray mb-1 font-medium">${selections.payment}</p>
             <p class="h5 text-gray font-medium">${selections.tradeIn}</p>
             <h3 class="h4 font-bold mt-6 mb-2 text-white">Total Due</h3>
-            <p id="totalDue" class="h5 text-gray mb-4 font-normal">${totalText}</p>
+            <p id="totalDue" class="h5 text-gray mb-2 font-normal">
+              ${totalText}
+            </p>
+
+            ${payIsRTO && deposit > 0 ? `
+              <p class="h5 text-gray font-normal">
+                Deposit: <span class="text-white">${tightFormat(deposit)}</span>
+                <span class="text-gray-light">(Due today)</span>
+              </p>
+            ` : ``}
             <div class="mt-6 flex justify-center">
               <button
                 class="h5 bg-blue-600 hover:bg-blue-700 text-white px-20 w-full py-2 rounded-checkout whitespace-nowrap"
@@ -748,7 +757,7 @@ title: Checkout
         
         if (countryCode === 'MY') {
           (function(){
-            const { deviceOneOff, deviceMonthly, bundled, months } = computePricingForSelections(selections);
+            const { deviceOneOff, deviceMonthly, bundled, months, deposit  } = computePricingForSelections(selections);
             const payIsRTO = /rent-to-own/i.test(selections.payment||'');
             const years = (months%12===0) ? (months/12) : null;
 
@@ -765,8 +774,14 @@ title: Checkout
               <p class="h5 text-gray mb-1 font-medium">${selections.payment}</p>
               <p class="h5 text-gray font-medium">${selections.tradeIn}</p>
               <h3 class="h4 font-bold mt-6 mb-2 text-white">Total Due</h3>
-              <p id="totalDue" class="h5 text-gray mb-4 font-normal">${totalText}</p>
-              <div class="mt-6 flex justify-center">
+              <p id="totalDue" class="h5 text-gray mb-1 font-normal">${totalText}</p>
+              ${payIsRTO && deposit > 0 ? `
+              <p class="h5 text-gray mb-1 font-normal">
+                Deposit: <span class="text-gray">${tightFormat(deposit)}</span>
+                <span class="text-gray">(Due today)</span>
+              </p>
+            ` : ``}
+              <div class="mt-9 flex justify-center">
                 <button
                   class="h5 bg-blue-600 hover:bg-blue-700 text-white px-20 w-full py-2 rounded-checkout whitespace-nowrap"
                   onclick="checkoutSubmit()"
@@ -778,7 +793,7 @@ title: Checkout
           })();
         } else {
           (function(){
-            const { deviceOneOff, deviceMonthly, bundled, months } = computePricingForSelections(selections);
+            const { deviceOneOff, deviceMonthly, bundled, months, deposit  } = computePricingForSelections(selections);
             const payIsRTO = /rent-to-own/i.test(selections.payment||'');
             const years = (months%12===0) ? (months/12) : null;
 
@@ -931,6 +946,7 @@ function checkoutSubmit() {
     const duration = pricing.months;
     const subscriptionId = pricing.subscriptionId || ((products.find(p => (p.name||"").toLowerCase()==="kommuassist2")?.subscription?.id) || "");
     const monthlyPayment = (pricing.deviceMonthly || 0).toFixed(2);
+    const depositAmount = (pricing.deposit || 0).toFixed(2);
     const visaItems = [{
       sim:         selections.sim || "",
       tradeIn:     selections.tradeIn || ""
@@ -949,6 +965,7 @@ function checkoutSubmit() {
     params.append("harness",          selections.model || "");
     params.append("amount",           devicePrice.toFixed(2));
     params.append("monthlyPayment",   monthlyPayment);
+    params.append("deposit",          depositAmount);
     params.append("installation",     selections.install || "");
     params.append("promoCode",        promoCode);
     params.append("deviceProperties", JSON.stringify(visaItems));

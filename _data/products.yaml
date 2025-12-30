@@ -17,6 +17,8 @@
     month: 36
     monthly_price:
       MYR: 125.00
+    deposit:
+      MYR: 1.00
 
 - name: Sim Card
   category: Add-on

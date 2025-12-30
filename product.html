@@ -205,11 +205,8 @@ title: Buy KommuAssist 2
           <span id="payOneOffPrice" class="w-[40%] h6 text-white text-right"></span>
         </button>
         <button 
-          class="payBtn btn-fixed-height w-full md:w-[37.5%] btn-bg-gray text-white btn-padding-store rounded-product-select border-1 btn-border-gray flex justify-center items-center text-center relative opacity-50 cursor-not-allowed pointer-events-none"
+          class="payBtn btn-fixed-height w-full md:w-[37.5%] btn-bg-gray text-white btn-padding-store rounded-product-select border-1 btn-border-gray flex justify-center items-center text-center relative"
           data-summary="Rent-to-own"
-          disabled
-          aria-disabled="true"
-          data-locked-permanent="true"
         >
           <div class="text-left w-[60%]">
             <p class="h5 text-white">Rent-to-own***</p>
@@ -217,9 +214,9 @@ title: Buy KommuAssist 2
           </div>
           <span id="payRtoPrice" class="w-[40%] h6 text-white text-right ml-2"></span>
 
-          <div class="kommu-lock-overlay absolute inset-0 bg-gray-600/40 backdrop-blur-sm rounded-product-select flex items-center justify-center pointer-events-none">
+          <!-- <div class="kommu-lock-overlay absolute inset-0 bg-gray-600/40 backdrop-blur-sm rounded-product-select flex items-center justify-center pointer-events-none">
             <div class="h5 text-white font-normal text-center">RTO only available after 5th Jan</div>
-          </div>
+          </div> -->
         </button>
         <button class="popupCardGrey md:w-[25%] text-white popup-padding-store rounded-product-select border-0 flex items-center justify-between" data-help="rto">
           <div class="flex flex-col items-start text-left">
@@ -300,8 +297,9 @@ title: Buy KommuAssist 2
     <div class="md:w-[30%] mt-1 summary-col">
       <h3 class="h4 font-bold mb-2 text-white">Payment</h3>
       <p id="summaryPayment"  class="h5 text-gray-light">Please select a payment method</p>
-      <p id="productDynamicTotal" class="h5 text-gray-light mb-2"></p>
-      <p id="summaryTradeIn"  class="h5 text-gray-light">Please select a trade-in option</p>
+      <p id="productDynamicTotal" class="h5 text-gray-light"></p>
+      <p id="summaryDeposit" class="h5 text-gray-light hidden"></p>
+      <p id="summaryTradeIn"  class="h5 mt-2 text-gray-light">Please select a trade-in option</p>
       
       <div class="mt-10 flex justify-center">
         <button
@@ -572,7 +570,7 @@ title: Buy KommuAssist 2
           // keep it disabled and overlaid
           b.disabled = true;
           b.classList.add('opacity-50','pointer-events-none','cursor-not-allowed');
-          setButtonOverlay(b, message || 'RTO only available after 5th Jan');
+          setButtonOverlay(b, message);
         } else {
           b.disabled = false;
           b.classList.remove('opacity-50','pointer-events-none','cursor-not-allowed');
@@ -589,7 +587,7 @@ title: Buy KommuAssist 2
         if (isPermanent) {
           b.disabled = true;
           b.classList.add('opacity-50','pointer-events-none','cursor-not-allowed');
-          setButtonOverlay(b, message || 'RTO only available after 5th Jan');
+          setButtonOverlay(b, message);
         } else {
           b.disabled = false;
           b.classList.remove('opacity-50','pointer-events-none','cursor-not-allowed');
@@ -648,6 +646,7 @@ title: Buy KommuAssist 2
   // --- Dynamic price render (device + bundled addons, promo-aware) ---
   (function(){
     const tgt = document.getElementById('productDynamicTotal');
+    const summaryDeposit = document.getElementById('summaryDeposit')
     if (!tgt || !window.KommuPricing) return;
 
     function renderPrice(){
@@ -681,6 +680,7 @@ title: Buy KommuAssist 2
 
       // Monthly pricing (promo-aware)
       const monthly = KommuPricing.getDeviceMonthlyByCurrency(currency, promoLabels) || 0;
+      const deposit = KommuPricing.getDeviceDepositByCurrency(currency, promoLabels)
       // Pull months from products data (default 36)
       let months = 36;
       let sst = KommuPricing.getSSTDevicePriceByCurrency(currency)
@@ -745,10 +745,19 @@ title: Buy KommuAssist 2
       }
       const payRtoEl = document.getElementById('payRtoPrice');
       if (payRtoEl) {
-        if (monthly > 0) {
-          payRtoEl.textContent = years ? `${fmt.format(monthly)}/mth for ${years} years` : `${fmt.format(monthly)}/mth`;
-        } else {
-          payRtoEl.textContent = '';
+        payRtoEl.innerHTML = '';
+        if (monthly > 0 && deposit > 0) {
+          const line1 = document.createElement('div');
+          line1.textContent = years
+            ? `${fmt.format(monthly)}/mth for ${years} yrs`
+            : `${fmt.format(monthly)}/mth`;
+
+          const line2 = document.createElement('div');
+          line2.className = 'text-gray-light';
+          line2.textContent = `Deposit: ${fmt.format(deposit)}`;
+
+          payRtoEl.appendChild(line1);
+          payRtoEl.appendChild(line2);
         }
       }
 
@@ -761,6 +770,18 @@ title: Buy KommuAssist 2
         next = fmt.format(total);
       }
       if (tgt.textContent !== next) tgt.textContent = next;
+      if (summaryDeposit) {
+        if (isRto && deposit > 0) {
+          summaryDeposit.innerHTML =
+            `Deposit: <span class="text-gray-light">${fmt.format(deposit)}</span>
+            <span class="text-gray-light">(Due today)</span>`;
+          summaryDeposit.classList.remove('hidden');
+
+        } else {
+          summaryDeposit.innerHTML = '';
+          summaryDeposit.classList.add('hidden');
+        }
+      }
     }
 
     // Initial and reactive updates

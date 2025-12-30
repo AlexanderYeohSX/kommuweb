@@ -115,6 +115,26 @@
       return baseMonthly || 0;
     } catch(_) { return 0; }
   }
+
+  function getDeviceDepositByCurrency(curr, labels){
+    try{
+      const ccy = (curr||'').toUpperCase();
+      const dev = (products||[]).find(p => (p.name||'').toLowerCase() === 'kommuassist2');
+      const baseDeposit = parseFloat((dev?.subscription?.deposit || {})[ccy] ?? 0) || 0;
+
+      const promo = activePromoFor('KommuAssist2','subscription',ccy,labels);
+      if (promo){
+        if (promo.deposit && typeof promo.deposit === 'object' && promo.deposit[ccy] != null) {
+          return parseFloat(promo.deposit[ccy]) || baseDeposit;
+        }
+        if (promo.currency && (promo.currency||'').toUpperCase()===ccy && promo.deposit != null && typeof promo.deposit !== 'object') {
+          return parseFloat(promo.deposit) || baseDeposit;
+        }
+      }
+      return baseDeposit;
+    } catch(_) { return 0; }
+  }
+  
   // Resolve subscription override (id, months, monthly) from promotions by label
   function getSubscriptionPromoFromLabels(labels, curr){
     const ccy = (curr||'').toUpperCase();
@@ -124,12 +144,18 @@
     const out = {
       id: promo.id || promo.subscriptionId || '',
       months: parseInt(promo.month || promo.months || 0, 10) || null,
-      monthly: null
+      monthly: null,
+      deposit: null
     };
     if (promo.monthly_price && typeof promo.monthly_price === 'object' && promo.monthly_price[ccy] != null) {
       out.monthly = parseFloat(promo.monthly_price[ccy]) || null;
     } else if (promo.currency && (promo.currency||'').toUpperCase()===ccy && promo.monthly_price != null && typeof promo.monthly_price !== 'object') {
       out.monthly = parseFloat(promo.monthly_price) || null;
+    }
+    if (promo.deposit && typeof promo.deposit === 'object' && promo.deposit[ccy] != null) {
+      out.deposit = parseFloat(promo.deposit[ccy]) || null;
+    } else if (promo.currency && (promo.currency||'').toUpperCase()===ccy && promo.deposit != null && typeof promo.deposit !== 'object') {
+      out.deposit = parseFloat(promo.deposit) || null;
     }
     return out;
   }
@@ -177,7 +203,7 @@
   window.KommuPricing = {
     getPreferredLocale, getCurrencyCode, getFormatter,
     getProductPriceByNameCurrency, getBaseDevicePriceByCurrency,
-    getDevicePriceByCurrency, getDeviceMonthlyByCurrency,
+    getDevicePriceByCurrency, getDeviceMonthlyByCurrency, getDeviceDepositByCurrency,
     matchRule, getAddonSurchargeFromSelections, getSubscriptionPromoFromLabels, getSlashedDevicePriceByCurrency, getSSTDevicePriceByCurrency
   };
 
