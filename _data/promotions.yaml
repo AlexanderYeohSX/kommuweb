@@ -19,11 +19,11 @@
 - product: KommuAssist2
   type: subscription
   label: "Trade-in"
-  valid_from: 2026-01-05
+  valid_from: 2025-12-30
   valid_until: 2099-12-31
   month: 24
-  id: plan_RArSzTfEiEsykX
+  id: plan_QyljeG4K1bOoHG
   monthly_price:
-    MYR: 108.00
+    MYR: 125.00
   deposit:
-    MYR: 1.00
+    MYR: 1100.00
