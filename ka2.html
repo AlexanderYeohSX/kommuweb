@@ -1687,7 +1687,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 if (!p) return;
 
                 if (monthly > 0) {
-                  p.textContent = `${fmt.format(device)} or ${fmt.format(monthly)}/mo. for ${months} months (RTO only available after 5th Jan)`;
+                  p.textContent = `${fmt.format(device)} or ${fmt.format(monthly)}/mo. for ${months} months with deposit`;
                 } else {
                   // Fallback: show one-off price only
                   p.textContent = `${fmt.format(device)}`;
