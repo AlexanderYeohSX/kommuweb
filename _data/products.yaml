@@ -12,13 +12,13 @@
     MYR: 400
     USD: 0
   subscription:
-    id: plan_Rzq82NO5lX2mnv
+    id: plan_QyljeG4K1bOoHG
     name: Rent-to-Own
-    month: 24
+    month: 2
     monthly_price:
-      MYR: 125.00
+      MYR: 1.00
     deposit:
-      MYR: 1500.00
+      MYR: 1.00
 
 - name: Sim Card
   category: Add-on
