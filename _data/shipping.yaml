@@ -9,8 +9,14 @@
 - code: AU
   name: Australia
   rates:
-    MYR: 108.00
-    USD: 27.00
+    MYR: 149.00
+    USD: 39.00
+
+- code: BR
+  name: Brazil
+  rates:
+    MYR: 280.00
+    USD: 71.00
 
 - code: DK
   name: Denmark
