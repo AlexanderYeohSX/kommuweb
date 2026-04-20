@@ -310,18 +310,24 @@ title: Kommu
     autoplay muted loop playsinline
     preload="auto"
   >
-    <source src="{{ '/assets/ytvid-small.mp4' | relative_url }}" type="video/mp4" media="(max-width: 768px)">
-    <source src="{{ '/assets/ytvid.mp4' | relative_url }}" type="video/mp4">
+    <source src="{{ '/assets/new-site-vid-small.mp4' | relative_url }}" type="video/mp4" media="(max-width: 768px)">
+    <source src="{{ '/assets/new-site-vid.mp4' | relative_url }}" type="video/mp4">
   </video>
   <div class="home-vignette" aria-hidden="true"></div>
   <div class="absolute inset-0 z-10 flex flex-col items-center justify-end pb-32 text-center px-4 hero-overlay">
+    <a
+      href="https://calendly.com/kommuassist/test-drive"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="h5 inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full mb-6"
+    >Test Drive Now</a>
     <h2 class="h2 text-white">
       Elevate your driving experience with L2+ ADAS
     </h2>
     <h3 class="h3 text-gray-light">
       Drive smarter and safer with KommuAssist
     </h3>
-    <div class="mt-6 space-x-6">
+    <div class="mt-6 flex items-center justify-center gap-6">
       <a
         href="{{ '/product' | relative_url }}"
         class="h4 text-blue-500 hover:underline"
