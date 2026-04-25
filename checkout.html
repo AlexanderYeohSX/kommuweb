@@ -989,6 +989,9 @@ function checkoutSubmit() {
   const total = devicePrice + ship;
   let lineItems;
 
+  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+  const installationValue = fromProduct ? (selections.install || "") : "Self-installation";
+
   const otpParams = new URLSearchParams({
     name,
     ic,
@@ -1000,7 +1003,7 @@ function checkoutSubmit() {
     country: entry.name || country,
     currency: (currency || 'MYR'),
     harness: (selections.model || ""),
-    installation: (selections.install || ""),
+    installation: installationValue,
     deviceprice:  devicePrice.toFixed(2),
     shippingrate: ship.toFixed(2),
     amount:       total.toFixed(2),
@@ -1013,7 +1016,6 @@ function checkoutSubmit() {
     };
     otpParams.append("deviceProperties", JSON.stringify(deviceProps));
   } else {
-    const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
     lineItems = cartItems.map(i => ({
       name:      i.name,
       quantity:  i.quantity || 1,
