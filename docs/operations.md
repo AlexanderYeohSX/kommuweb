@@ -8,7 +8,7 @@
 | Runtime | `provided.al2023`, ARM64, handler `bootstrap` |
 | HTTP API | `Kommu Gateway` (`ifhdr5efvk`) |
 | Domain | `https://aws.kommu.ai` |
-| CORS origins | `http://127.0.0.1:4000`, `https://kommu.ai`, `https://www.kommu.ai` (API Gateway; includes `OPTIONS` for preflight) |
+| CORS origins | `http://127.0.0.1:4000`, `https://kommu.ai`, `https://www.kommu.ai`, `https://alexanderyeohsx.github.io` (API Gateway; includes `OPTIONS` for preflight) |
 
 ## Environment variables (Lambda)
 
@@ -36,7 +36,7 @@ Or CDK: `cd cmd_aws/cdk && npm install && npm run deploy` (bundles via local `ma
 ## Razorpay Curlec Dashboard
 
 1. Enable **automatic payment capture**.
-2. Allowlist callback domain `kommu.ai`.
+2. Allowlist callback domains `kommu.ai` and (for staging) `alexanderyeohsx.github.io` in Razorpay Checkout settings.
 3. Webhook URL: prefer `https://aws.kommu.ai/curlec/webhook` for JSON events (`payment.captured`, etc.). Keep `https://aws.kommu.ai/curlec/callback` for Checkout form redirects only, or use one URL for both (handler dedupes retries).
 4. Razorpay retries webhooks if the response takes **>5 seconds** or is non-2xx. The Lambda marks orders with `fulfilled_payment_id` in Razorpay order notes to avoid duplicate emails on retries.
 5. Checkout redirect: `https://aws.kommu.ai/curlec/callback` (form POST from Standard Checkout).
