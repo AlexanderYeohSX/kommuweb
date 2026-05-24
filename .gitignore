@@ -10,3 +10,7 @@ Gemfile.lock
 .DS_Store
 img/.DS_Store
 assets/.DS_Store
+cmd_aws/
+server/node_modules
+docs/output/
+docs/scripts/build-pdf.sh

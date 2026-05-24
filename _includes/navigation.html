@@ -159,26 +159,6 @@
     localeSelectorDesktop?.addEventListener("change",   e => onChange(e.target.value));
   })();
 
-  function getCurrencyCode(locale) {
-    const country = locale.split("-")[1] || "US";
-    // const currencyMap = { MY: "MYR", US: "USD", SG: "SGD", JP: "JPY", GB: "GBP" };
-    const currencyMap = { MY: "MYR", US: "USD"};
-
-    return currencyMap[country] || "USD";
-  }
-
-  function getFormatter(locale) {
-    const currency = getCurrencyCode(locale);
-    return new Intl.NumberFormat(locale, { style: "currency", currency, minimumFractionDigits: 2 });
-  }
-
-  function formatPrice(prices) {
-    const locale = localStorage.getItem("preferredLocale") || "en-US";
-    const currency = getCurrencyCode(locale);
-    const formatter = getFormatter(locale);
-    const price = prices[currency] || prices["USD"] || 0;
-    return formatter.format(price);
-  }
 </script>
 <script>
   // -- Burger toggle logic --

@@ -4,9 +4,19 @@
   const promotions  = {{ site.data.promotions | jsonify }};
   const rulesConfig = {{ site.data.checkout_rules | jsonify }};
 
-  // ----- Locale & currency helpers
+  // ----- Locale & currency helpers (getCurrencyCode/getFormatter from currency_helpers.html)
   function getPreferredLocale(){
     return localStorage.getItem('preferredLocale') || 'en-US';
+  }
+
+  function getDeviceFieldByCurrency(field, curr){
+    try{
+      const dev = (products||[]).find(p => (p.name||'').toLowerCase() === 'kommuassist2');
+      if (!dev) return 0;
+      const map = dev[field] || {};
+      const c = (curr||'').toUpperCase();
+      return parseFloat(map[c] ?? map.USD ?? 0) || 0;
+    } catch(_) { return 0; }
   }
 
   // ----- Product pricing helpers
@@ -20,34 +30,9 @@
     } catch(_) { return 0; }
   }
 
-  //TODO: Can refactor all three of these
-  function getBaseDevicePriceByCurrency(curr){
-    try{
-      const dev = (products||[]).find(p => (p.name||'').toLowerCase() === 'kommuassist2');
-      if (!dev) return 0;
-      const prices = dev.prices || {};
-      const c = (curr||'').toUpperCase();
-      return parseFloat(prices[c] ?? prices.USD ?? 0) || 0;
-    } catch(_) { return 0; }
-  }
-  function getSlashedDevicePriceByCurrency(curr){
-    try{
-      const dev = (products||[]).find(p => (p.name||'').toLowerCase() === 'kommuassist2');
-      if (!dev) return 0;
-      const prices = dev.slashed_prices || {};
-      const c = (curr||'').toUpperCase();
-      return parseFloat(prices[c] ?? prices.USD ?? 0) || 0;
-    } catch(_) { return 0; }
-  }
-  function getSSTDevicePriceByCurrency(curr){
-    try{
-      const dev = (products||[]).find(p => (p.name||'').toLowerCase() === 'kommuassist2');
-      if (!dev) return 0;
-      const prices = dev.sst || {};
-      const c = (curr||'').toUpperCase();
-      return parseFloat(prices[c] ?? prices.USD ?? 0) || 0;
-    } catch(_) { return 0; }
-  }
+  function getBaseDevicePriceByCurrency(curr){ return getDeviceFieldByCurrency('prices', curr); }
+  function getSlashedDevicePriceByCurrency(curr){ return getDeviceFieldByCurrency('slashed_prices', curr); }
+  function getSSTDevicePriceByCurrency(curr){ return getDeviceFieldByCurrency('sst', curr); }
 
   // ----- Promotions helpers (multi-currency aware)
   function isPromoActive(promo, now = new Date()){
@@ -242,7 +227,10 @@
 
   // ----- Export a tiny API for pages to use
   window.KommuPricing = {
-    getPreferredLocale, getCurrencyCode, getFormatter,
+    getPreferredLocale,
+    getCurrencyCode: window.getCurrencyCode,
+    getFormatter: window.getFormatter,
+    formatPrice: window.formatPrice,
     getProductPriceByNameCurrency, getBaseDevicePriceByCurrency,
     getDevicePriceByCurrency, getDeviceMonthlyByCurrency, getDeviceDepositByCurrency,
     getSubDevicePriceByCurrency, getSubscriptionMonths,

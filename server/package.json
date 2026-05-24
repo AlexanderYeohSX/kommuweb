@@ -1,0 +1,20 @@
+{
+  "name": "kommu-curlec-api",
+  "version": "1.0.0",
+  "description": "Razorpay Curlec orders, subscriptions, and payment verification for kommuweb",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "razorpay": "^2.9.4"
+  }
+}

@@ -731,7 +731,6 @@ title: Buy KommuAssist 2
           const dev = (products || []).find(p => (p.name || '').toLowerCase() === 'kommuassist2');
           const map = dev?.big_discount || {};
           discount = map[currency] || 0;
-          console.log(dev)
         } catch (_) {
           discount = 0;
         }

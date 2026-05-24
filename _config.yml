@@ -11,10 +11,6 @@ description: "KommuAssist 2: AI-Powered Level 2 Autonomous Driving Solution"
 #  description.
 copyright: 'Copyright &copy; 2025 Kommu. All Rights Reserved.'
 
-collections:
-  products:
-    output: true
-
 # ----------------------- #
 #    Jekyll & Plugins     #
 # ----------------------- #
@@ -33,5 +29,5 @@ social:
   - title: github
     url: https://github.com/kommu/bukapilot
   - title: facebook
-    url: https://instagram.com/kommuai
+    url: https://www.facebook.com/groups/kommu.official
 

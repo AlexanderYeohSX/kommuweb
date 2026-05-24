@@ -77,18 +77,6 @@
     /></noscript>
     <!-- End Meta Pixel Code -->
     
-    <!-- Retrieve Client IP Address -->  
-    <script>
-    fetch('https://www.cloudflare.com/cdn-cgi/trace')
-    .then(res => res.text() ).then(t => {
-        var data = t.replace(/[\r\n]+/g, '","').replace(/\=+/g, '":"');
-            data = '{"' + data.slice(0, data.lastIndexOf('","')) + '"}';
-        var jsondata = JSON.parse(data);
-        console.log(jsondata.loc);
-        console.log(jsondata.ip);
-    })
-    </script>
-
     <!-- JQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
