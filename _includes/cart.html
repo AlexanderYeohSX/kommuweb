@@ -47,46 +47,6 @@
   let cartOpenGuard = false; // prevents immediate close from the opening click
   let blockCartInsideClick = null;
 
-  function getCurrencyCode(locale) {
-    const country = locale.split("-")[1] || "US";
-    const currencyMap = {
-      MY: "MYR", US: "USD", SG: "SGD", JP: "JPY", GB: "GBP"
-    };
-    return currencyMap[country] || "USD";
-  }
-
-  function getFormatter(locale) {
-    const currency = getCurrencyCode(locale);
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 2
-    });
-  }
-
-  function formatPrice(prices) {
-    const locale = localStorage.getItem("preferredLocale") || nguage || "en-US";
-    const currency = getCurrencyCode(locale);
-    const formatter = getFormatter(locale);
-    const price = prices[currency] || prices["USD"] || 0;
-    const parts = formatter.formatToParts(price);
-    // Concatenate currency and number parts without space
-    let result = "";
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-      if (part.type === "currency") {
-        result += part.value;
-        // Check next part, if it's a literal space, skip it
-        if (i + 1 < parts.length && parts[i + 1].type === "literal" && parts[i + 1].value === " ") {
-          i++; // skip space
-        }
-      } else if (part.type !== "literal") {
-        result += part.value;
-      }
-    }
-    return result;
-  }
-
   function addToCart(product) {
     const normSel = (product.selection || "").toString().trim();
     product.selection = normSel;

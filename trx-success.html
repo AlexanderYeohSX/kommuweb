@@ -7,10 +7,15 @@ title: Payment Successful!
   /* global (e.g., in base.css or layout) */
 html, body { background:#000; }
 </style>
-<section id="trx-successful" class="flex items-center justify-center min-h-screen px-6 text-center bg-black">
+<section id="trx-successful" class="flex items-center justify-center min-h-screen px-6 pt-24 pb-16 text-center bg-black">
   <div class="max-w-3xl mx-auto">
-    <h1 class="trx-header text-white text-4xl font-bold mb-6">Your payment transaction is successful.</h1>
-    <p class="trx-footer text-gray-light text-lg mb-20">Check your email for payment receipt. We will notify you and provide tracking number once we ship your KommuAssist kit!</p>
+    <p id="payment-verify-error" class="hidden text-red-400 text-lg mb-6">We could not verify this payment. If you were charged, please contact support@kommu.ai with your receipt.</p>
+    <h1 id="trx-success-title" class="text-white text-4xl font-bold mb-6">Your payment transaction is successful.</h1>
+    <p id="rto-success-note" class="hidden text-gray-light text-lg mb-6">
+      Your rent-to-own subscription is set up. The bank may take up to four working days to approve auto-debit; we will email your receipt when the subscription is confirmed.
+    </p>
+    <p id="subscription-ref" class="hidden text-gray-light text-base mb-6"></p>
+    <p id="trx-success-body" class="text-gray-light text-lg mb-20">Check your email for payment receipt. We will notify you and provide tracking number once we ship your KommuAssist kit!</p>
     <h2 class="text-white text-3xl font-bold mb-6">Welcome to the Kommunity!</h2>
     <p class="trx-footer text-gray-light text-lg mb-20">Join our facebook support group at <a class="underline text-white" href="https://www.facebook.com/groups/kommu.official">https://www.facebook.com/groups/kommu.official</a></p>
     <div class="card-itb-2 bg-[#111] rounded-2xl p-8">
@@ -34,20 +39,70 @@ html, body { background:#000; }
 </section>
 
 <script>
+  (function applyRtoSuccessCopy() {
+    const params = new URLSearchParams(window.location.search);
+    const subId = params.get('subscription_id');
+    if (!subId) return;
+    const title = document.getElementById('trx-success-title');
+    const rtoNote = document.getElementById('rto-success-note');
+    const ref = document.getElementById('subscription-ref');
+    const body = document.getElementById('trx-success-body');
+    if (title) title.textContent = 'Thank you — your rent-to-own checkout is complete.';
+    if (rtoNote) rtoNote.classList.remove('hidden');
+    if (ref) {
+      ref.textContent = 'Reference: ' + subId;
+      ref.classList.remove('hidden');
+    }
+    if (body) {
+      body.textContent = 'We will notify you on WhatsApp when your kit is ready to ship or install.';
+    }
+  })();
+
+  (async function verifyPaymentFromCallback() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'failed') {
+      window.location.replace('/trx-failure/');
+      return;
+    }
+    if (params.get('subscription_id')) return;
+    const orderId = params.get('razorpay_order_id');
+    const paymentId = params.get('razorpay_payment_id');
+    const signature = params.get('razorpay_signature');
+    if (!orderId || !paymentId || !signature) return;
+    try {
+      const res = await fetch('https://aws.kommu.ai/curlec/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_order_id: orderId,
+          razorpay_payment_id: paymentId,
+          razorpay_signature: signature
+        })
+      });
+      const data = await res.json();
+      if (!data.valid) {
+        const err = document.getElementById('payment-verify-error');
+        if (err) err.classList.remove('hidden');
+      }
+    } catch (e) {
+      console.error('Payment verification request failed', e);
+    }
+  })();
+
   function originSubmit() {
     var originDropdown = document.getElementById("origin-select");
     var originValue = originDropdown.value;
     var customerName = "Anonymous";
-    if (localStorage.getItem("customerName") !== null){
-      customerName = localStorage.getItem("customerName")
-    } 
+    if (sessionStorage.getItem("customerName")) {
+      customerName = sessionStorage.getItem("customerName");
+    } else if (localStorage.getItem("customerName")) {
+      customerName = localStorage.getItem("customerName");
+    }
 
     const params = new URLSearchParams();
     params.append("name", customerName);
     params.append("origin", originValue);
     const url = "https://aws.kommu.ai/survey?" + params.toString();
-    console.log(url);
-
     postSurvey(url);
     
 

@@ -1,0 +1,229 @@
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+  #kommu-checkout-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.72);
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  #kommu-checkout-overlay.is-active {
+    display: flex;
+  }
+  .kommu-checkout-overlay__panel {
+    text-align: center;
+    color: #fff;
+    max-width: 20rem;
+  }
+  .kommu-checkout-overlay__spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0 auto 1rem;
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: kommu-checkout-spin 0.8s linear infinite;
+  }
+  @keyframes kommu-checkout-spin {
+    to { transform: rotate(360deg); }
+  }
+  .kommu-checkout-overlay__msg {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+</style>
+<script>
+(function () {
+  const API_BASE = 'https://aws.kommu.ai';
+  const SITE_URL = '{{ site.url | default: "https://kommu.ai" }}'.replace(/\/$/, '');
+  const BUSINESS_NAME = 'Kommu';
+
+  function ensureCheckoutOverlay() {
+    let el = document.getElementById('kommu-checkout-overlay');
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'kommu-checkout-overlay';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.innerHTML =
+      '<div class="kommu-checkout-overlay__panel">' +
+      '<div class="kommu-checkout-overlay__spinner" aria-hidden="true"></div>' +
+      '<p class="kommu-checkout-overlay__msg"></p></div>';
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function showCheckoutLoading(message) {
+    const el = ensureCheckoutOverlay();
+    const msg = el.querySelector('.kommu-checkout-overlay__msg');
+    if (msg) msg.textContent = message || 'Please wait…';
+    el.classList.add('is-active');
+  }
+
+  function hideCheckoutLoading() {
+    const el = document.getElementById('kommu-checkout-overlay');
+    if (el) el.classList.remove('is-active');
+  }
+
+  function toE164Contact(mobile, countryCode) {
+    const digits = String(mobile || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.startsWith('60')) return '+' + digits;
+    if (digits.startsWith('0') && (countryCode === 'MY' || !countryCode)) return '+6' + digits;
+    if (countryCode === 'MY') return '+60' + digits;
+    return '+' + digits;
+  }
+
+  function setCustomerName(name) {
+    sessionStorage.setItem('customerName', name);
+    try { localStorage.setItem('customerName', name); } catch (_) {}
+  }
+
+  async function postJson(path, body) {
+    const res = await fetch(API_BASE + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || res.statusText || 'Request failed');
+    return data;
+  }
+
+  function openCheckout(options) {
+    return new Promise((resolve, reject) => {
+      if (typeof Razorpay === 'undefined') {
+        hideCheckoutLoading();
+        reject(new Error('Razorpay checkout script failed to load'));
+        return;
+      }
+      const rzp = new Razorpay({
+        ...options,
+        handler: function (response) {
+          showCheckoutLoading('Completing your payment…');
+          resolve(response);
+        },
+        modal: {
+          ondismiss: function () {
+            hideCheckoutLoading();
+            reject(new Error('Payment cancelled'));
+          }
+        }
+      });
+      rzp.on('payment.success', function () {
+        showCheckoutLoading('Completing your payment…');
+      });
+      rzp.on('payment.failed', function (resp) {
+        hideCheckoutLoading();
+        reject(new Error(resp.error?.description || 'Payment failed'));
+      });
+      hideCheckoutLoading();
+      rzp.open();
+    });
+  }
+
+  function orderDescription(payload) {
+    if (payload.source === 'cart' && payload.items) {
+      const items = typeof payload.items === 'string' ? JSON.parse(payload.items) : payload.items;
+      if (Array.isArray(items) && items.length) {
+        const names = items.map(function (i) { return i.name; }).filter(Boolean);
+        if (names.length) return names.join(', ');
+      }
+      return 'Kommu accessories';
+    }
+    if (payload.harness) return 'KommuAssist — ' + payload.harness;
+    return 'KommuAssist order';
+  }
+
+  async function payWithOrder(payload, customer) {
+    showCheckoutLoading('Preparing checkout…');
+    try {
+      const created = await postJson('/curlec/orders', payload);
+      const callbackUrl = API_BASE + '/curlec/callback';
+      showCheckoutLoading('Opening secure payment…');
+      const response = await openCheckout({
+        key: created.key_id,
+        amount: String(created.amount),
+        currency: created.currency,
+        name: BUSINESS_NAME,
+        description: orderDescription(payload),
+        order_id: created.order_id,
+        callback_url: callbackUrl,
+        redirect: true,
+        prefill: {
+          name: customer.name,
+          email: customer.email,
+          contact: toE164Contact(customer.mobile, customer.country)
+        },
+        notes: payload.notes || {},
+        theme: { color: '#2563eb' }
+      });
+      return response;
+    } catch (err) {
+      hideCheckoutLoading();
+      throw err;
+    }
+  }
+
+  async function payWithSubscription(payload, customer) {
+    showCheckoutLoading('Preparing subscription…');
+    try {
+      const created = await postJson('/curlec/subscriptions', payload);
+      const callbackUrl = API_BASE + '/curlec/callback';
+      const desc = payload.harness
+        ? 'KommuAssist RTO — ' + payload.harness
+        : 'KommuAssist rent-to-own';
+      showCheckoutLoading('Opening secure payment…');
+      const response = await openCheckout({
+        key: created.key_id,
+        subscription_id: created.subscription_id,
+        name: BUSINESS_NAME,
+        description: desc,
+        callback_url: callbackUrl,
+        redirect: true,
+        prefill: {
+          name: customer.name,
+          email: customer.email,
+          contact: toE164Contact(customer.mobile, 'MY')
+        },
+        theme: { color: '#2563eb' }
+      });
+      return response;
+    } catch (err) {
+      hideCheckoutLoading();
+      throw err;
+    }
+  }
+
+  async function verifyOnServer(paymentIds) {
+    const res = await postJson('/curlec/verify', paymentIds);
+    return res.valid === true;
+  }
+
+  function redirectAfterHandler(response, target) {
+    const q = new URLSearchParams({
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id || '',
+      razorpay_signature: response.razorpay_signature || ''
+    });
+    window.location.href = SITE_URL + target + '?' + q.toString();
+  }
+
+  window.KommuCheckout = {
+    API_BASE,
+    SITE_URL,
+    setCustomerName,
+    payWithOrder,
+    payWithSubscription,
+    verifyOnServer,
+    redirectAfterHandler,
+    showCheckoutLoading,
+    hideCheckoutLoading,
+    toE164Contact
+  };
+})();
+</script>

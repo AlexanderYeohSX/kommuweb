@@ -4,6 +4,7 @@ title: Checkout
 ---
 
 {% include pricing_helpers.html %}
+{% include razorpay_checkout.html %}
 
 <style>
 
@@ -265,7 +266,6 @@ title: Checkout
         };
         const thenBlock   = KommuPricing.matchRule(ctx) || {};
         const promoLabels = (thenBlock.auto_apply?.promotion?.label) ? [thenBlock.auto_apply.promotion.label] : [];
-        console.log(promoLabels)
         // Device pricing (promo-aware)
         const deviceOneOff  = KommuPricing.getDevicePriceByCurrency(currency,  promoLabels);
         const deviceMonthly = KommuPricing.getDeviceMonthlyByCurrency(currency, promoLabels);
@@ -846,9 +846,9 @@ title: Checkout
   });
 
 
-const visaUrl = "https://aws.kommu.ai/curlec/visa?";
-const otpUrl = "https://aws.kommu.ai/curlec/otp?";
 const stripeUrl = "https://aws.kommu.ai/stripe/checkout?";
+const RAZORPAY_SUB_PROVIDERS = ['razorpay-subscription', 'curlec-sub'];
+const RAZORPAY_ORDER_PROVIDERS = ['razorpay-order', 'curlec-otp'];
 
 // Helper: Smoothly scroll to a field with offset for sticky headers
 function __scrollToField(el){
@@ -863,7 +863,7 @@ function __scrollToField(el){
   }
 }
 
-function checkoutSubmit() {
+async function checkoutSubmit() {
   var fromProduct   = false;
   const _urlParams = new URLSearchParams(location.search);
   const _modeParam = _urlParams.get('mode') || _urlParams.get('src');
@@ -881,7 +881,8 @@ function checkoutSubmit() {
     })(s);
   })();
 
-  const useVisa = (plan.provider === 'curlec-sub');
+  const useSubscription = RAZORPAY_SUB_PROVIDERS.includes(plan.provider);
+  const useRazorpayOrder = RAZORPAY_ORDER_PROVIDERS.includes(plan.provider);
   const pricing = computePricingForSelections(selections);
 
   // common form values
@@ -900,8 +901,6 @@ function checkoutSubmit() {
   if (typeof window.__runAllCheckoutValidations === 'function') {
     allOK = window.__runAllCheckoutValidations();
   }
-  console.log(allOK)
-
   // also ensure required built-in constraints are respected
   const requiredEls = [
     document.getElementById('checkoutName'),
@@ -947,45 +946,95 @@ function checkoutSubmit() {
   const entry = shippingConfig.find(e => e.code === country) || {};
   const ship  = parseFloat(entry.rates?.[currency] || 0);
 
-  // build params & redirect
-  if (useVisa) {
-    // rent-to-own → Visa URL
+  KommuCheckout.setCustomerName(name);
+
+  if (useSubscription) {
     const duration = pricing.months;
     const subscriptionId = pricing.subscriptionId || ((products.find(p => (p.name||"").toLowerCase()==="kommuassist2")?.subscription?.id) || "");
-    const monthlyPayment = (pricing.deviceMonthly || 0).toFixed(2);
     const depositAmount = (pricing.deposit || 0).toFixed(2);
-    const visaItems = [{
-      sim:         selections.sim || "",
-      tradeIn:     selections.tradeIn || ""
-    }];
-
-    const params = new URLSearchParams();
-    params.append("name",             name);
-    params.append("email",            email);
-    params.append("mobile",           mobile);
-    params.append("address1",         addr1);
-    params.append("address2",         addr2);
-    params.append("postcode",         postcode);
-    params.append("nric",             ic);
-    params.append("duration",         duration);
-    params.append("subscription",     subscriptionId);
-    params.append("harness",          selections.model || "");
-    params.append("amount",           devicePrice.toFixed(2));
-    params.append("sub_device_price", (pricing.subDevicePrice != null ? Number(pricing.subDevicePrice) : 0).toFixed(2));
-    params.append("monthlyPayment",   monthlyPayment);
-    params.append("deposit",          depositAmount);
-    params.append("installation",     selections.install || "");
-    params.append("promoCode",        promoCode);
-    params.append("deviceProperties", JSON.stringify(visaItems));
-    params.append("country",           "Malaysia");
-    params.append("currency",          "MYR");
-
-    sessionStorage.setItem("customerName", name);
-    window.open(visaUrl + params.toString(), "_blank");
+    const btn = document.getElementById('checkoutBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Opening payment…'; }
+    try {
+      await KommuCheckout.payWithSubscription({
+        plan_id: subscriptionId,
+        total_count: duration,
+        deposit: depositAmount,
+        currency: 'MYR',
+        name,
+        email,
+        mobile,
+        address1: addr1,
+        postcode,
+        nric: ic,
+        harness: selections.model || '',
+        installation: selections.install || '',
+        promoCode,
+        sub_device_price: (pricing.subDevicePrice != null ? Number(pricing.subDevicePrice) : 0).toFixed(2),
+        monthlyPayment: (pricing.deviceMonthly != null ? Number(pricing.deviceMonthly) : 0).toFixed(2),
+        sim: selections.sim || '',
+        tradeIn: selections.tradeIn || ''
+      }, { name, email, mobile, country: 'MY' });
+    } catch (err) {
+      KommuCheckout.hideCheckoutLoading();
+      if (err.message !== 'Payment cancelled') {
+        alert(err.message || 'Could not start subscription checkout. Please try again.');
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Continue to Payment'; }
+    }
     return;
   }
 
-  // default: One-time payment → OTP or Stripe URL
+  if (useRazorpayOrder) {
+    const total = devicePrice + ship;
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const installationValue = fromProduct ? (selections.install || '') : 'Self-installation';
+    const orderBody = {
+      source: fromProduct ? 'product' : 'cart',
+      name,
+      ic,
+      email,
+      mobile,
+      address1: addr1,
+      address2: addr2,
+      postcode,
+      country: entry.name || country,
+      currency: 'MYR',
+      harness: selections.model || '',
+      installation: installationValue,
+      deviceprice: devicePrice.toFixed(2),
+      shippingrate: ship.toFixed(2),
+      amount: total.toFixed(2),
+      promoCode
+    };
+    if (fromProduct) {
+      orderBody.deviceProperties = JSON.stringify({
+        sim: selections.sim || '',
+        tradeIn: selections.tradeIn || ''
+      });
+    } else if (cartItems.length) {
+      orderBody.items = cartItems.map(i => ({
+        name: i.name,
+        quantity: i.quantity || 1,
+        unitPrice: (i.prices[currency] || i.prices.USD || 0).toFixed(2),
+        subcategory: i.selection
+      }));
+    }
+    const btn = document.getElementById('checkoutBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Opening payment…'; }
+    try {
+      // redirect:true — successful FPX/card payments return via /curlec/callback → trx-success
+      await KommuCheckout.payWithOrder(orderBody, { name, email, mobile, country });
+    } catch (err) {
+      KommuCheckout.hideCheckoutLoading();
+      if (err.message !== 'Payment cancelled') {
+        alert(err.message || 'Could not start checkout. Please try again.');
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Continue to Payment'; }
+    }
+    return;
+  }
+
+  // Stripe (non-MYR) — redirect flow unchanged
   const total = devicePrice + ship;
   let lineItems;
 
@@ -1028,31 +1077,10 @@ function checkoutSubmit() {
     otpParams.append("items", JSON.stringify(lineItems));
   }
 
-  sessionStorage.setItem("customerName", name);
-
-  let targetUrl = otpUrl;
-  if (plan.provider === 'stripe') targetUrl = stripeUrl;
-  if (plan.provider === 'curlec-otp') targetUrl = otpUrl;
-
-  // Enforce country/currency for each case
-  if (plan.mode === 'product') {
-    if (plan.provider === 'curlec-otp') {
-      otpParams.set('country', 'Malaysia');
-      otpParams.set('currency', 'MYR');
-    }
-    if (plan.provider === 'stripe') {
-      // country(name) already from dropdown; currency already set above
-      // also force one-off & locks already applied in selections
-    }
-  } else {
-    // cart accessories-only
-    if (plan.provider === 'curlec-otp') {
-      otpParams.set('country', 'Malaysia');
-      otpParams.set('currency', 'MYR');
-    }
+  let targetUrl = stripeUrl;
+  if (plan.provider === 'stripe') {
+    window.open(targetUrl + '?' + otpParams.toString(), '_blank');
   }
-
-  window.open(targetUrl + otpParams.toString(), "_blank");
 }
 
 </script>

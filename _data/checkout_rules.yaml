@@ -4,7 +4,7 @@
     currency_in: ["MYR"]
     dropdowns: { payment: "One-off Purchase", tradeIn: "No Trade-in", sim: "without SIM card"}
   then:
-    provider: curlec-otp
+    provider: razorpay-order
     locks_checkout: { country: 'MY' }
     ui: { show: [payment], hide: [] }
 
@@ -14,7 +14,7 @@
     currency_in: ["MYR"]
     dropdowns: { payment: "One-off Purchase", tradeIn: "No Trade-in", sim: "with SIM card"}
   then:
-    provider: curlec-otp
+    provider: razorpay-order
     locks_checkout: { country: 'MY' }
     auto_apply:
       addons: ["Sim Card"]
@@ -26,7 +26,7 @@
     currency_in: ["MYR"]
     dropdowns: { payment: "One-off Purchase", tradeIn: "Trade-in KA1/KA1s", sim: "without SIM card"}
   then:
-    provider: curlec-otp
+    provider: razorpay-order
     locks_checkout: { country: 'MY' }
     auto_apply:
       promotion:
@@ -40,7 +40,7 @@
     currency_in: ["MYR"]
     dropdowns: { payment: "One-off Purchase", tradeIn: "Trade-in KA1/KA1s", sim: "with SIM card"}
   then:
-    provider: curlec-otp
+    provider: razorpay-order
     locks_checkout: { country: 'MY' }
     auto_apply:
       promotion:
@@ -88,7 +88,7 @@
     currency_in: ["MYR"]
     dropdowns: { payment: "Rent-to-own", tradeIn: "No Trade-in"}
   then:
-    provider: curlec-sub
+    provider: razorpay-subscription
     locks_checkout:
       icRequired: true
     ui: { show: [payment], hide: [] }
@@ -99,7 +99,7 @@
     currency_in: ["MYR"]
     dropdowns: { payment: "Rent-to-own", tradeIn: "Trade-in KA1/KA1s"}
   then:
-    provider: curlec-sub
+    provider: razorpay-subscription
     locks_checkout:
       icRequired: true
     ui: { show: [payment], hide: [] }
@@ -113,7 +113,7 @@
     source: cart
     currency_in: ["MYR"]
   then:
-    provider: curlec-otp
+    provider: razorpay-order
     locks: { hidePromo: true, country: MY }
     ui: { show: [summary], hide: [promo] }
 
