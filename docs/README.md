@@ -11,6 +11,8 @@ Architecture and checkout documentation for the Jekyll storefront and Curlec (Ra
 | [backend-api.md](backend-api.md) | `aws.kommu.ai` Curlec API contract |
 | [operations.md](operations.md) | Dashboard, env vars, deployment |
 | [qa-checklist.md](qa-checklist.md) | Manual regression checklist |
+| [installers-google-sheet.md](installers-google-sheet.md) | Authorized Installers page + Google Form sync |
+| [meta-conversions-api.md](meta-conversions-api.md) | Meta Pixel + Conversions API (Razorpay & Stripe) |
 
 ## Build PDF
 

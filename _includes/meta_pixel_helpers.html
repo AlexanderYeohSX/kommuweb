@@ -1,0 +1,85 @@
+<script>
+(function () {
+  function readCookie(name) {
+    var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&') + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function buildFbcFromFbclid() {
+    var params = new URLSearchParams(window.location.search);
+    var fbclid = params.get('fbclid');
+    if (!fbclid) return '';
+    return 'fb.1.' + Date.now() + '.' + fbclid;
+  }
+
+  function newEventId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return window.crypto.randomUUID();
+    }
+    return 'evt-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+  }
+
+  function track(eventName, params, eventId) {
+    if (typeof window.fbq !== 'function') return;
+    if (eventId) {
+      window.fbq('track', eventName, params || {}, { eventID: eventId });
+      return;
+    }
+    window.fbq('track', eventName, params || {});
+  }
+
+  function buildMetaPayload(currency, value) {
+    return {
+      meta_event_id: newEventId(),
+      meta_fbp: readCookie('_fbp'),
+      meta_fbc: readCookie('_fbc') || buildFbcFromFbclid(),
+      meta_source_url: window.location.href,
+      currency: currency || 'MYR',
+      value: Number(value) || 0
+    };
+  }
+
+  function persistPurchaseMeta(payload) {
+    if (!payload) return;
+    try {
+      sessionStorage.setItem('meta_purchase_event_id', payload.meta_event_id || '');
+      sessionStorage.setItem('meta_purchase_value', String(payload.value || 0));
+      sessionStorage.setItem('meta_purchase_currency', payload.currency || 'MYR');
+    } catch (_) {}
+  }
+
+  function trackInitiateCheckout(currency, value) {
+    var payload = buildMetaPayload(currency, value);
+    track('InitiateCheckout', { currency: payload.currency, value: payload.value }, payload.meta_event_id);
+    persistPurchaseMeta(payload);
+    return payload;
+  }
+
+  function trackPurchaseFromAttribution() {
+    if (typeof window.fbq !== 'function') return;
+    var params = new URLSearchParams(window.location.search);
+    var eventId = params.get('meta_event_id') || sessionStorage.getItem('meta_purchase_event_id');
+    var value = parseFloat(params.get('meta_value') || sessionStorage.getItem('meta_purchase_value') || '0');
+    var currency = params.get('meta_currency') || sessionStorage.getItem('meta_purchase_currency') || 'MYR';
+    if (!eventId || !(value > 0)) return;
+    track('Purchase', { currency: currency, value: value }, eventId);
+    try {
+      sessionStorage.removeItem('meta_purchase_event_id');
+      sessionStorage.removeItem('meta_purchase_value');
+      sessionStorage.removeItem('meta_purchase_currency');
+    } catch (_) {}
+  }
+
+  window.KommuMeta = {
+    readCookie: readCookie,
+    getFbp: function () { return readCookie('_fbp'); },
+    getFbc: function () { return readCookie('_fbc') || buildFbcFromFbclid(); },
+    newEventId: newEventId,
+    track: track,
+    buildMetaPayload: buildMetaPayload,
+    persistPurchaseMeta: persistPurchaseMeta,
+    trackInitiateCheckout: trackInitiateCheckout,
+    trackPurchaseFromAttribution: trackPurchaseFromAttribution
+  };
+})();
+</script>

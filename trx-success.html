@@ -64,7 +64,10 @@ html, body { background:#000; }
       window.location.replace('/trx-failure/');
       return;
     }
-    if (params.get('subscription_id')) return;
+    if (params.get('subscription_id')) {
+      if (window.KommuMeta) KommuMeta.trackPurchaseFromAttribution();
+      return;
+    }
     const orderId = params.get('razorpay_order_id');
     const paymentId = params.get('razorpay_payment_id');
     const signature = params.get('razorpay_signature');
@@ -83,10 +86,20 @@ html, body { background:#000; }
       if (!data.valid) {
         const err = document.getElementById('payment-verify-error');
         if (err) err.classList.remove('hidden');
+      } else if (window.KommuMeta) {
+        KommuMeta.trackPurchaseFromAttribution();
       }
     } catch (e) {
       console.error('Payment verification request failed', e);
     }
+  })();
+
+  (function trackStripePurchaseMeta() {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get('meta_event_id')) return;
+    if (params.get('razorpay_order_id')) return;
+    if (params.get('subscription_id')) return;
+    if (window.KommuMeta) KommuMeta.trackPurchaseFromAttribution();
   })();
 
   function originSubmit() {

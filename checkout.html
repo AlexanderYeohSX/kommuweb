@@ -948,6 +948,21 @@ async function checkoutSubmit() {
 
   KommuCheckout.setCustomerName(name);
 
+  function appendMetaFields(target) {
+    if (!window.KommuMeta) return target;
+    var checkoutCurrency = useSubscription || useRazorpayOrder ? 'MYR' : (currency || 'MYR');
+    var checkoutTotal = devicePrice + ship;
+    if (useSubscription) {
+      checkoutTotal = (pricing.deposit || 0) + (pricing.deviceMonthly || 0);
+    }
+    var meta = KommuMeta.trackInitiateCheckout(checkoutCurrency, checkoutTotal);
+    target.meta_event_id = meta.meta_event_id;
+    target.meta_fbp = meta.meta_fbp;
+    target.meta_fbc = meta.meta_fbc;
+    target.meta_source_url = meta.meta_source_url;
+    return target;
+  }
+
   if (useSubscription) {
     const duration = pricing.months;
     const subscriptionId = pricing.subscriptionId || ((products.find(p => (p.name||"").toLowerCase()==="kommuassist2")?.subscription?.id) || "");
@@ -955,7 +970,7 @@ async function checkoutSubmit() {
     const btn = document.getElementById('checkoutBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Opening payment…'; }
     try {
-      await KommuCheckout.payWithSubscription({
+      await KommuCheckout.payWithSubscription(appendMetaFields({
         plan_id: subscriptionId,
         total_count: duration,
         deposit: depositAmount,
@@ -973,7 +988,7 @@ async function checkoutSubmit() {
         monthlyPayment: (pricing.deviceMonthly != null ? Number(pricing.deviceMonthly) : 0).toFixed(2),
         sim: selections.sim || '',
         tradeIn: selections.tradeIn || ''
-      }, { name, email, mobile, country: 'MY' });
+      }), { name, email, mobile, country: 'MY' });
     } catch (err) {
       KommuCheckout.hideCheckoutLoading();
       if (err.message !== 'Payment cancelled') {
@@ -988,7 +1003,7 @@ async function checkoutSubmit() {
     const total = devicePrice + ship;
     const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
     const installationValue = fromProduct ? (selections.install || '') : 'Self-installation';
-    const orderBody = {
+    const orderBody = appendMetaFields({
       source: fromProduct ? 'product' : 'cart',
       name,
       ic,
@@ -1005,7 +1020,7 @@ async function checkoutSubmit() {
       shippingrate: ship.toFixed(2),
       amount: total.toFixed(2),
       promoCode
-    };
+    });
     if (fromProduct) {
       orderBody.deviceProperties = JSON.stringify({
         sim: selections.sim || '',
@@ -1076,6 +1091,12 @@ async function checkoutSubmit() {
   if (lineItems && lineItems.length) {
     otpParams.append("items", JSON.stringify(lineItems));
   }
+
+  appendMetaFields({});
+  otpParams.set('meta_event_id', sessionStorage.getItem('meta_purchase_event_id') || '');
+  otpParams.set('meta_fbp', window.KommuMeta ? KommuMeta.getFbp() : '');
+  otpParams.set('meta_fbc', window.KommuMeta ? KommuMeta.getFbc() : '');
+  otpParams.set('meta_source_url', window.location.href);
 
   let targetUrl = stripeUrl;
   if (plan.provider === 'stripe') {

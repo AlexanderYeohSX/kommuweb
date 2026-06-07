@@ -23,6 +23,10 @@ permalink: pretty
 #   3rd Party Settings    #
 # ----------------------- #
 
+# Authorized Installers page — Google Apps Script web app URL (see docs/installers-google-sheet.md)
+# Leave empty for local sample data; set to /exec URL after deploying Apps Script.
+installers_api_url: "https://script.google.com/macros/s/AKfycbwLpJuHrljoy_1SmSxcoIkzAk3aEFJu2TIR9jwTKwvfSI1rKBqYQvsIS157zcMYC7D4/exec"
+
 social:
   - title: instagram
     url: https://instagram.com/kommuai

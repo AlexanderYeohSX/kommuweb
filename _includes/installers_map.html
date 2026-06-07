@@ -1,0 +1,276 @@
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<script>
+(function () {
+  const MALAYSIA_BOUNDS = L.latLngBounds(
+    [0.85, 99.64],
+    [7.36, 119.27]
+  );
+
+  const API_URL = {{ site.installers_api_url | jsonify }};
+  const DEV_SAMPLE = {{ site.data.installers_sample | jsonify }};
+
+  const statusEl = document.getElementById('installers-status');
+  const errorEl = document.getElementById('installers-error');
+  const contentEl = document.getElementById('installers-content');
+  const emptyEl = document.getElementById('installers-empty');
+  const tableBody = document.getElementById('installer-table-body');
+
+  let map = null;
+  let markersById = {};
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function contactHtml(contact) {
+    const c = String(contact || '').trim();
+    if (!c) return '';
+    const tel = c.replace(/[^\d+]/g, '');
+    if (/^\+?\d{8,}$/.test(tel)) {
+      return '<a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(c) + '</a>';
+    }
+    if (c.indexOf('@') > 0) {
+      return '<a href="mailto:' + escapeHtml(c) + '">' + escapeHtml(c) + '</a>';
+    }
+    return escapeHtml(c);
+  }
+
+  function popupHtml(installer) {
+    const showInstaller =
+      installer.installer_name &&
+      installer.shop_name &&
+      installer.installer_name !== installer.shop_name &&
+      installer.installer_name !== installer.name;
+
+    return (
+      '<div class="installer-popup-name">' + escapeHtml(installer.name) + '</div>' +
+      (showInstaller ? '<div class="installer-popup-muted">' + escapeHtml(installer.installer_name) + '</div>' : '') +
+      (installer.contact ? '<div>' + contactHtml(installer.contact) + '</div>' : '') +
+      (installer.email ? '<div>' + contactHtml(installer.email) + '</div>' : '') +
+      (installer.address ? '<div class="installer-popup-muted">' + escapeHtml(installer.address) + '</div>' : '')
+    );
+  }
+
+  /** Slight offset when multiple installers share the same coordinates so pins stay clickable. */
+  function markerPositions(installers) {
+    const groups = {};
+    installers.forEach(function (installer, index) {
+      const lat = parseFloat(installer.lat);
+      const lng = parseFloat(installer.lng);
+      if (!isFinite(lat) || !isFinite(lng)) return;
+      const key = lat.toFixed(4) + ',' + lng.toFixed(4);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push({ installer: installer, index: index });
+    });
+
+    const positions = {};
+    Object.keys(groups).forEach(function (key) {
+      const group = groups[key];
+      if (group.length === 1) {
+        positions[group[0].installer.id] = [
+          parseFloat(group[0].installer.lat),
+          parseFloat(group[0].installer.lng)
+        ];
+        return;
+      }
+      const baseLat = parseFloat(group[0].installer.lat);
+      const baseLng = parseFloat(group[0].installer.lng);
+      const radius = 0.012;
+      group.forEach(function (item, i) {
+        const angle = (2 * Math.PI * i) / group.length;
+        positions[item.installer.id] = [
+          baseLat + radius * Math.cos(angle),
+          baseLng + radius * Math.sin(angle)
+        ];
+      });
+    });
+    return positions;
+  }
+
+  function sortInstallers(list) {
+    return list.slice().sort(function (a, b) {
+      const s = String(a.state).localeCompare(String(b.state));
+      if (s !== 0) return s;
+      return String(a.name).localeCompare(String(b.name));
+    });
+  }
+
+  function useDevSample() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('dev') === '1' || !API_URL;
+  }
+
+  async function fetchInstallers() {
+    if (useDevSample()) {
+      return sortInstallers(DEV_SAMPLE || []);
+    }
+
+    const url = API_URL + (API_URL.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.installers || []);
+    return sortInstallers(list);
+  }
+
+  function renderTable(installers) {
+    tableBody.innerHTML = '';
+    installers.forEach(function (installer) {
+      const tr = document.createElement('tr');
+      tr.dataset.installerId = installer.id;
+      tr.setAttribute('tabindex', '0');
+      tr.setAttribute('role', 'button');
+      tr.setAttribute('aria-label', 'Show ' + installer.name + ' on map');
+
+      const stateTd = document.createElement('td');
+      stateTd.className = 'px-4 py-4 align-top text-gray-300';
+      stateTd.textContent = installer.state;
+
+      const infoTd = document.createElement('td');
+      infoTd.className = 'px-4 py-4 align-top';
+      infoTd.innerHTML =
+        '<div class="font-semibold text-white mb-1">' + escapeHtml(installer.name) + '</div>' +
+        (installer.contact ? '<div class="text-gray-300 mb-1">' + contactHtml(installer.contact) + '</div>' : '') +
+        (installer.email ? '<div class="text-gray-300 mb-1">' + contactHtml(installer.email) + '</div>' : '') +
+        (installer.address ? '<div class="text-gray-500 text-sm">' + escapeHtml(installer.address) + '</div>' : '');
+
+      tr.appendChild(stateTd);
+      tr.appendChild(infoTd);
+
+      tr.addEventListener('click', function () { focusInstaller(installer.id); });
+      tr.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          focusInstaller(installer.id);
+        }
+      });
+
+      tableBody.appendChild(tr);
+    });
+  }
+
+  function initMap(installers) {
+    if (map) {
+      map.remove();
+      map = null;
+      markersById = {};
+    }
+
+    map = L.map('installer-map', {
+      maxBounds: MALAYSIA_BOUNDS.pad(0.08),
+      maxBoundsViscosity: 1.0,
+      minZoom: 6,
+      scrollWheelZoom: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    const positions = markerPositions(installers);
+    const latLngs = [];
+
+    installers.forEach(function (installer) {
+      const ll = positions[installer.id];
+      if (!ll) return;
+
+      latLngs.push(ll);
+
+      const marker = L.marker(ll).addTo(map);
+      marker.bindPopup(popupHtml(installer));
+      marker.on('click', function () {
+        highlightTableRow(installer.id);
+      });
+      markersById[installer.id] = marker;
+    });
+
+    if (latLngs.length) {
+      map.fitBounds(L.latLngBounds(latLngs), { padding: [40, 40], maxZoom: 12 });
+    } else {
+      map.fitBounds(MALAYSIA_BOUNDS);
+    }
+  }
+
+  function highlightTableRow(id) {
+    tableBody.querySelectorAll('tr').forEach(function (tr) {
+      tr.classList.toggle('installer-row-active', tr.dataset.installerId === id);
+    });
+    const row = tableBody.querySelector('tr[data-installer-id="' + id + '"]');
+    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function focusInstaller(id) {
+    const marker = markersById[id];
+    if (!marker || !map) return;
+    highlightTableRow(id);
+    map.setView(marker.getLatLng(), Math.max(map.getZoom(), 10), { animate: true });
+    marker.openPopup();
+  }
+
+  function showLoading(msg) {
+    statusEl.textContent = msg || 'Loading installers…';
+    statusEl.classList.remove('hidden');
+    errorEl.classList.add('hidden');
+    contentEl.classList.add('hidden');
+  }
+
+  function showError() {
+    statusEl.classList.add('hidden');
+    errorEl.classList.remove('hidden');
+    contentEl.classList.add('hidden');
+  }
+
+  function showContent(installers) {
+    statusEl.classList.add('hidden');
+    errorEl.classList.add('hidden');
+    contentEl.classList.remove('hidden');
+
+    if (!installers.length) {
+      emptyEl.classList.remove('hidden');
+      initMap([]);
+      return;
+    }
+
+    emptyEl.classList.add('hidden');
+    renderTable(installers);
+    initMap(installers);
+
+    if (useDevSample()) {
+      statusEl.classList.remove('hidden');
+      statusEl.textContent = 'Showing sample installers (configure installers_api_url for live data).';
+    }
+  }
+
+  async function boot() {
+    showLoading();
+    try {
+      const installers = await fetchInstallers();
+      showContent(installers);
+    } catch (err) {
+      console.error('Installers load failed:', err);
+      showError();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>

@@ -1,0 +1,34 @@
+# Sample installers for local dev when installers_api_url is empty or ?dev=1
+- id: sample-kl
+  name: "Demo Auto Workshop"
+  installer_name: "Ahmad Demo"
+  shop_name: "Demo Auto Workshop"
+  state: "Wilayah Persekutuan Kuala Lumpur"
+  city: "Kuala Lumpur"
+  contact: "+60 3-0000 0000"
+  email: "demo.kl@example.com"
+  address: "123 Jalan Demo, 50450 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur"
+  lat: 3.1390
+  lng: 101.6869
+- id: sample-pg
+  name: "Penang Demo Garage"
+  installer_name: "Lee Demo"
+  shop_name: "Penang Demo Garage"
+  state: "Pulau Pinang"
+  city: "George Town"
+  contact: "+60 4-000 0000"
+  email: "demo.pg@example.com"
+  address: "456 Jalan Demo, 10000 George Town, Pulau Pinang"
+  lat: 5.4141
+  lng: 100.3288
+- id: sample-jb
+  name: "Johor Demo Motors"
+  installer_name: "Raj Demo"
+  shop_name: "Johor Demo Motors"
+  state: "Johor"
+  city: "Johor Bahru"
+  contact: "+60 7-000 0000"
+  email: "demo.jb@example.com"
+  address: "789 Jalan Demo, 80000 Johor Bahru, Johor"
+  lat: 1.4927
+  lng: 103.7414

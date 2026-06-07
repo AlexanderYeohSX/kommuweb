@@ -22,6 +22,11 @@
 | `STRIPE_SECRET_KEY` | Stripe secret |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `CALLBACK_BASE_URL` | Default `https://kommu.ai` |
+| `META_PIXEL_ID` | Meta pixel ID (default `586857186218202`) |
+| `META_CAPI_ACCESS_TOKEN` | Meta Conversions API access token (**secret**) |
+| `META_CAPI_TEST_EVENT_CODE` | Optional; Events Manager test code for staging |
+
+See [meta-conversions-api.md](meta-conversions-api.md) for event mapping and testing.
 
 See [cmd_aws/payment/.env.example](../cmd_aws/payment/.env.example).
 

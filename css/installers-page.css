@@ -1,0 +1,59 @@
+#installer-map {
+  height: 420px;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #444;
+  background: #111;
+}
+
+@media (max-width: 640px) {
+  #installer-map {
+    height: 320px;
+  }
+}
+
+.installers-table-wrap {
+  overflow-x: auto;
+}
+
+.installers-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.installers-table tbody tr:hover,
+.installers-table tbody tr.installer-row-active {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.leaflet-popup-content-wrapper {
+  background: #1b1b1b;
+  color: #f5f5f5;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.leaflet-popup-tip {
+  background: #1b1b1b;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.45;
+  font-size: 14px;
+}
+
+.installer-popup-name {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.installer-popup-muted {
+  color: #b0b0b0;
+  margin-top: 4px;
+}
+
+.leaflet-container a {
+  color: #93c5fd;
+}
