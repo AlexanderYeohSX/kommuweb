@@ -39,6 +39,17 @@ html, body { background:#000; }
 </section>
 
 <script>
+  function trackMetaPurchase() {
+    if (typeof fbq !== 'function') return;
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get('razorpay_payment_id') || params.get('subscription_id');
+    if (!eventId) return;
+    const storageKey = 'meta_purchase_' + eventId;
+    if (sessionStorage.getItem(storageKey)) return;
+    fbq('track', 'Purchase', { value: 4999.00, currency: 'MYR' });
+    sessionStorage.setItem(storageKey, '1');
+  }
+
   (function applyRtoSuccessCopy() {
     const params = new URLSearchParams(window.location.search);
     const subId = params.get('subscription_id');
@@ -56,6 +67,7 @@ html, body { background:#000; }
     if (body) {
       body.textContent = 'We will notify you on WhatsApp when your kit is ready to ship or install.';
     }
+    trackMetaPurchase();
   })();
 
   (async function verifyPaymentFromCallback() {
@@ -86,8 +98,9 @@ html, body { background:#000; }
       if (!data.valid) {
         const err = document.getElementById('payment-verify-error');
         if (err) err.classList.remove('hidden');
-      } else if (window.KommuMeta) {
-        KommuMeta.trackPurchaseFromAttribution();
+      } else {
+        trackMetaPurchase();
+        if (window.KommuMeta) KommuMeta.trackPurchaseFromAttribution();
       }
     } catch (e) {
       console.error('Payment verification request failed', e);
