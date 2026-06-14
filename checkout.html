@@ -1100,7 +1100,8 @@ async function checkoutSubmit() {
 
   let targetUrl = stripeUrl;
   if (plan.provider === 'stripe') {
-    window.open(targetUrl + '?' + otpParams.toString(), '_blank');
+    // stripeUrl already ends with "?" — do not add another or "name" (first param) is dropped
+    window.open(targetUrl + otpParams.toString(), '_blank');
   }
 }
 
