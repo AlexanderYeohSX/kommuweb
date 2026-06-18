@@ -125,13 +125,19 @@
     min-height: 280px;
   }
 
-  #installer-map.leaflet-container {
+  #installer-map.leaflet-container,
+  #installer-map .leaflet-pane,
+  #installer-map .leaflet-control-container {
     pointer-events: none;
   }
 
   #installer-map .leaflet-marker-pane,
   #installer-map .leaflet-popup-pane {
     pointer-events: auto;
+  }
+
+  .installers-map-panel {
+    touch-action: pan-y;
   }
 }
 

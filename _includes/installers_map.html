@@ -53,6 +53,7 @@
   let resetTimeout = null;
   let tableListenersBound = false;
   let pendingFocusId = null;
+  let mobileTapDismissBound = false;
 
   function isMobileMap() {
     return window.matchMedia('(max-width: 900px)').matches;
@@ -350,6 +351,48 @@
     setTimeout(function () {
       fitAllMarkers(false);
     }, isMobileMap() ? 300 : 100);
+
+    bindMobileMapTapDismiss();
+  }
+
+  function bindMobileMapTapDismiss() {
+    if (mobileTapDismissBound) return;
+    const panel = document.querySelector('.installers-map-panel');
+    if (!panel) return;
+    mobileTapDismissBound = true;
+
+    let touchStart = null;
+    let touchMoved = false;
+
+    panel.addEventListener('touchstart', function (e) {
+      if (!isMobileMap() || e.touches.length !== 1) return;
+      touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      touchMoved = false;
+    }, { passive: true });
+
+    panel.addEventListener('touchmove', function () {
+      if (!isMobileMap()) return;
+      touchMoved = true;
+    }, { passive: true });
+
+    panel.addEventListener('touchend', function (e) {
+      if (!isMobileMap() || !map || !touchStart || touchMoved) return;
+      if (!map._popup || !map._popup.isOpen()) return;
+
+      const t = e.changedTouches[0];
+      if (Math.abs(t.clientX - touchStart.x) > 12 || Math.abs(t.clientY - touchStart.y) > 12) return;
+      if (e.target.closest('.leaflet-popup') || e.target.closest('.leaflet-marker-icon')) return;
+
+      map.closePopup();
+      touchStart = null;
+    }, { passive: true });
+
+    panel.addEventListener('click', function (e) {
+      if (!isMobileMap() || !map) return;
+      if (!map._popup || !map._popup.isOpen()) return;
+      if (e.target.closest('.leaflet-popup') || e.target.closest('.leaflet-marker-icon')) return;
+      map.closePopup();
+    });
   }
 
   window.addEventListener('resize', function () {
