@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" fill="none">
+  <defs>
+    <filter id="pin-shadow" x="-50%" y="-30%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#000000" flood-opacity="0.45"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <path
+    filter="url(#pin-shadow)"
+    fill="#6f29e7"
+    stroke="#2a1260"
+    stroke-width="1"
+    stroke-linejoin="round"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M16 0C8.268 0 2 6.268 2 14c0 10.5 14 28 14 28s14-17.5 14-28C30 6.268 23.732 0 16 0zm0 20a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"
+  />
+</svg>
