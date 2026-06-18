@@ -19,6 +19,27 @@
 
   const API_URL = {{ site.installers_api_url | jsonify }};
   const DEV_SAMPLE = {{ site.data.installers_sample | jsonify }};
+  const INSTALLER_PIN_URL = {{ '/assets/img/installer-pin.svg' | relative_url | jsonify }};
+
+  function installerPinIcon() {
+    const mobile = isMobileMap();
+    const w = mobile ? 18 : 26;
+    const h = mobile ? 24 : 32;
+    return L.icon({
+      iconUrl: INSTALLER_PIN_URL,
+      iconSize: [w, h],
+      iconAnchor: [w / 2, h],
+      popupAnchor: [0, -(h - 3)],
+      className: 'installer-leaflet-pin'
+    });
+  }
+
+  function updateAllMarkerIcons() {
+    const icon = installerPinIcon();
+    Object.keys(markersById).forEach(function (id) {
+      markersById[id].setIcon(icon);
+    });
+  }
 
   const statusEl = document.getElementById('installers-status');
   const errorEl = document.getElementById('installers-error');
@@ -28,6 +49,75 @@
 
   let map = null;
   let markersById = {};
+  let allMarkerLatLngs = [];
+  let resetTimeout = null;
+  let tableListenersBound = false;
+  let pendingFocusId = null;
+
+  function isMobileMap() {
+    return window.matchMedia('(max-width: 900px)').matches;
+  }
+
+  function overviewBounds() {
+    if (!allMarkerLatLngs.length) return MALAYSIA_BOUNDS;
+
+    const bounds = L.latLngBounds(allMarkerLatLngs);
+    const center = bounds.getCenter();
+    const padFactor = isMobileMap() ? 0.18 : 0.25;
+    let expanded = bounds.pad(padFactor);
+
+    const minSpan = isMobileMap() ? 2.8 : 3.5;
+    const ne = expanded.getNorthEast();
+    const sw = expanded.getSouthWest();
+    const latSpan = ne.lat - sw.lat;
+    const lngSpan = ne.lng - sw.lng;
+
+    if (latSpan < minSpan || lngSpan < minSpan) {
+      const halfLat = Math.max(latSpan, minSpan) / 2;
+      const halfLng = Math.max(lngSpan, minSpan) / 2;
+      expanded = L.latLngBounds(
+        [center.lat - halfLat, center.lng - halfLng],
+        [center.lat + halfLat, center.lng + halfLng]
+      );
+    }
+
+    return expanded;
+  }
+
+  function overviewFitOptions(animate) {
+    return {
+      padding: isMobileMap() ? [24, 16] : [48, 48],
+      // maxZoom = ceiling only; won't zoom in if fitBounds computes a lower level
+      maxZoom: isMobileMap() ? 6 : 8,
+      animate: !!animate
+    };
+  }
+
+  function fitAllMarkers(animate) {
+    if (!map) return;
+    map.invalidateSize();
+    const bounds = overviewBounds();
+    const opts = overviewFitOptions(animate);
+    map.fitBounds(bounds, opts);
+
+    if (!isMobileMap() || !allMarkerLatLngs.length) return;
+
+    const floorZoom = 5;
+    if (map.getZoom() >= floorZoom) return;
+
+    const markerBounds = L.latLngBounds(allMarkerLatLngs).pad(0.08);
+    const center = markerBounds.getCenter();
+    map.setView(center, floorZoom, { animate: false });
+
+    if (!map.getBounds().contains(markerBounds)) {
+      map.fitBounds(bounds, opts);
+      return;
+    }
+
+    if (opts.animate) {
+      map.setView(center, floorZoom, { animate: true });
+    }
+  }
 
   function escapeHtml(str) {
     return String(str || '')
@@ -37,17 +127,22 @@
       .replace(/"/g, '&quot;');
   }
 
-  function contactHtml(contact) {
+  function phoneHtml(contact) {
     const c = String(contact || '').trim();
     if (!c) return '';
-    const tel = c.replace(/[^\d+]/g, '');
-    if (/^\+?\d{8,}$/.test(tel)) {
-      return '<a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(c) + '</a>';
+    let digits = c.replace(/[^\d]/g, '');
+    if (digits.length < 8) return escapeHtml(c);
+    if (digits.startsWith('0')) {
+      digits = '60' + digits.slice(1);
+    } else if (!digits.startsWith('60')) {
+      digits = '60' + digits;
     }
-    if (c.indexOf('@') > 0) {
-      return '<a href="mailto:' + escapeHtml(c) + '">' + escapeHtml(c) + '</a>';
-    }
-    return escapeHtml(c);
+    return (
+      '<a class="installer-popup-phone" href="https://wa.me/' + escapeHtml(digits) + '" target="_blank" rel="noopener noreferrer">' +
+      '<i class="fab fa-whatsapp installer-popup-wa-icon" aria-hidden="true"></i>' +
+      '<span>' + escapeHtml(c) + '</span>' +
+      '</a>'
+    );
   }
 
   function popupHtml(installer) {
@@ -59,9 +154,8 @@
 
     return (
       '<div class="installer-popup-name">' + escapeHtml(installer.name) + '</div>' +
-      (showInstaller ? '<div class="installer-popup-muted">' + escapeHtml(installer.installer_name) + '</div>' : '') +
-      (installer.contact ? '<div>' + contactHtml(installer.contact) + '</div>' : '') +
-      (installer.email ? '<div>' + contactHtml(installer.email) + '</div>' : '') +
+      (showInstaller ? '<div class="installer-popup-person">' + escapeHtml(installer.installer_name) + '</div>' : '') +
+      (installer.contact ? '<div>' + phoneHtml(installer.contact) + '</div>' : '') +
       (installer.address ? '<div class="installer-popup-muted">' + escapeHtml(installer.address) + '</div>' : '')
     );
   }
@@ -90,7 +184,7 @@
       }
       const baseLat = parseFloat(group[0].installer.lat);
       const baseLng = parseFloat(group[0].installer.lng);
-      const radius = 0.012;
+      const radius = isMobileMap() ? 0.022 : 0.018;
       group.forEach(function (item, i) {
         const angle = (2 * Math.PI * i) / group.length;
         positions[item.installer.id] = [
@@ -145,23 +239,31 @@
       infoTd.className = 'px-4 py-4 align-top';
       infoTd.innerHTML =
         '<div class="font-semibold text-white mb-1">' + escapeHtml(installer.name) + '</div>' +
-        (installer.contact ? '<div class="text-gray-300 mb-1">' + contactHtml(installer.contact) + '</div>' : '') +
-        (installer.email ? '<div class="text-gray-300 mb-1">' + contactHtml(installer.email) + '</div>' : '') +
+        (installer.contact ? '<div class="text-gray-300 mb-1">' + escapeHtml(installer.contact) + '</div>' : '') +
         (installer.address ? '<div class="text-gray-500 text-sm">' + escapeHtml(installer.address) + '</div>' : '');
 
       tr.appendChild(stateTd);
       tr.appendChild(infoTd);
 
-      tr.addEventListener('click', function () { focusInstaller(installer.id); });
-      tr.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          focusInstaller(installer.id);
-        }
-      });
-
       tableBody.appendChild(tr);
     });
+
+    if (!tableListenersBound) {
+      tableListenersBound = true;
+      tableBody.addEventListener('click', function (e) {
+        const tr = e.target.closest('tr[data-installer-id]');
+        if (!tr) return;
+        focusInstaller(tr.dataset.installerId, { fromTable: true });
+      });
+
+      tableBody.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const tr = e.target.closest('tr[data-installer-id]');
+        if (!tr) return;
+        e.preventDefault();
+        focusInstaller(tr.dataset.installerId, { fromTable: true });
+      });
+    }
   }
 
   function initMap(installers) {
@@ -174,52 +276,143 @@
     map = L.map('installer-map', {
       maxBounds: MALAYSIA_BOUNDS.pad(0.08),
       maxBoundsViscosity: 1.0,
-      minZoom: 6,
-      scrollWheelZoom: true
+      minZoom: isMobileMap() ? 1 : 6,
+      zoomControl: false,
+      attributionControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
     }).addTo(map);
 
     const positions = markerPositions(installers);
     const latLngs = [];
+    allMarkerLatLngs = [];
 
     installers.forEach(function (installer) {
       const ll = positions[installer.id];
       if (!ll) return;
 
       latLngs.push(ll);
+      allMarkerLatLngs.push(ll);
 
-      const marker = L.marker(ll).addTo(map);
-      marker.bindPopup(popupHtml(installer));
-      marker.on('click', function () {
-        highlightTableRow(installer.id);
+      const marker = L.marker(ll, { icon: installerPinIcon() }).addTo(map);
+      marker.bindPopup(popupHtml(installer), { autoPan: false });
+      marker.on('click', function (e) {
+        L.DomEvent.stopPropagation(e);
+        focusInstaller(installer.id);
       });
       markersById[installer.id] = marker;
     });
 
-    if (latLngs.length) {
-      map.fitBounds(L.latLngBounds(latLngs), { padding: [40, 40], maxZoom: 12 });
-    } else {
-      map.fitBounds(MALAYSIA_BOUNDS);
+    fitAllMarkers(false);
+
+    map.on('click', function () {
+      if (map._popup && map._popup.isOpen()) {
+        map.closePopup();
+      } else {
+        resetMapView();
+      }
+    });
+
+    map.on('popupopen', function () {
+      cancelPendingReset();
+    });
+
+    map.on('popupclose', function () {
+      scheduleResetIfNoPopup();
+    });
+
+    setTimeout(function () {
+      fitAllMarkers(false);
+    }, isMobileMap() ? 300 : 100);
+  }
+
+  window.addEventListener('resize', function () {
+    if (!map) return;
+    updateAllMarkerIcons();
+    if (map._popup && map._popup.isOpen()) return;
+    fitAllMarkers(false);
+  });
+
+  function cancelPendingReset() {
+    if (resetTimeout) {
+      clearTimeout(resetTimeout);
+      resetTimeout = null;
     }
+  }
+
+  function scheduleResetIfNoPopup() {
+    if (pendingFocusId) return;
+    cancelPendingReset();
+    resetTimeout = setTimeout(function () {
+      resetTimeout = null;
+      if (pendingFocusId) return;
+      if (map && map._popup && map._popup.isOpen()) return;
+      resetMapView();
+    }, 50);
   }
 
   function highlightTableRow(id) {
     tableBody.querySelectorAll('tr').forEach(function (tr) {
       tr.classList.toggle('installer-row-active', tr.dataset.installerId === id);
     });
-    const row = tableBody.querySelector('tr[data-installer-id="' + id + '"]');
-    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  function focusInstaller(id) {
+  function resetMapView() {
+    if (!map) return;
+    tableBody.querySelectorAll('tr').forEach(function (tr) {
+      tr.classList.remove('installer-row-active');
+    });
+    fitAllMarkers(true);
+  }
+
+  function focusZoom() {
+    return isMobileMap() ? 10 : 11;
+  }
+
+  function centerOnMarker(marker, id) {
+    pendingFocusId = id;
+    cancelPendingReset();
+    map.invalidateSize();
+
+    const latLng = marker.getLatLng();
+    const zoom = focusZoom();
+
+    if (map._popup && map._popup.isOpen()) {
+      map.closePopup();
+    }
+
+    map.flyTo(latLng, zoom, { duration: 0.45 });
+    map.once('moveend', function () {
+      if (pendingFocusId !== id) return;
+      marker.openPopup();
+      pendingFocusId = null;
+    });
+  }
+
+  function focusInstaller(id, opts) {
+    opts = opts || {};
     const marker = markersById[id];
     if (!marker || !map) return;
     highlightTableRow(id);
-    map.setView(marker.getLatLng(), Math.max(map.getZoom(), 10), { animate: true });
-    marker.openPopup();
+
+    if (opts.fromTable && window.matchMedia('(max-width: 900px)').matches) {
+      const mapEl = document.getElementById('installer-map');
+      if (mapEl) {
+        mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setTimeout(function () { centerOnMarker(marker, id); }, 350);
+    } else {
+      centerOnMarker(marker, id);
+    }
   }
 
   function showLoading(msg) {
