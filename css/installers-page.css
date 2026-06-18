@@ -124,6 +124,15 @@
     height: 50vh;
     min-height: 280px;
   }
+
+  #installer-map.leaflet-container {
+    pointer-events: none;
+  }
+
+  #installer-map .leaflet-marker-pane,
+  #installer-map .leaflet-popup-pane {
+    pointer-events: auto;
+  }
 }
 
 .leaflet-popup-content-wrapper {
@@ -153,6 +162,13 @@
 
 .installer-list-name {
   line-height: 1.35;
+}
+
+.installer-list-phone {
+  color: inherit;
+  text-decoration: none;
+  pointer-events: none;
+  -webkit-touch-callout: none;
 }
 
 .installer-popup-person {
