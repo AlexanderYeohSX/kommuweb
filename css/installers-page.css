@@ -148,6 +148,11 @@
   font-size: 15px;
   margin-bottom: 6px;
   color: #000;
+  line-height: 1.35;
+}
+
+.installer-list-name {
+  line-height: 1.35;
 }
 
 .installer-popup-person {

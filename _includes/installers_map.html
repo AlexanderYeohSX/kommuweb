@@ -127,6 +127,14 @@
       .replace(/"/g, '&quot;');
   }
 
+  function multilineHtml(str) {
+    return escapeHtml(String(str || '').replace(/\\n/g, '\n')).replace(/\r?\n/g, '<br>');
+  }
+
+  function plainText(str) {
+    return String(str || '').replace(/\\n/g, '\n').replace(/\r?\n/g, ' ').trim();
+  }
+
   function phoneHtml(contact) {
     const c = String(contact || '').trim();
     if (!c) return '';
@@ -153,7 +161,7 @@
       installer.installer_name !== installer.name;
 
     return (
-      '<div class="installer-popup-name">' + escapeHtml(installer.name) + '</div>' +
+      '<div class="installer-popup-name">' + multilineHtml(installer.name) + '</div>' +
       (showInstaller ? '<div class="installer-popup-person">' + escapeHtml(installer.installer_name) + '</div>' : '') +
       (installer.contact ? '<div>' + phoneHtml(installer.contact) + '</div>' : '') +
       (installer.address ? '<div class="installer-popup-muted">' + escapeHtml(installer.address) + '</div>' : '')
@@ -229,7 +237,7 @@
       tr.dataset.installerId = installer.id;
       tr.setAttribute('tabindex', '0');
       tr.setAttribute('role', 'button');
-      tr.setAttribute('aria-label', 'Show ' + installer.name + ' on map');
+      tr.setAttribute('aria-label', 'Show ' + plainText(installer.name) + ' on map');
 
       const stateTd = document.createElement('td');
       stateTd.className = 'px-4 py-4 align-top text-gray-300';
@@ -238,7 +246,7 @@
       const infoTd = document.createElement('td');
       infoTd.className = 'px-4 py-4 align-top';
       infoTd.innerHTML =
-        '<div class="font-semibold text-white mb-1">' + escapeHtml(installer.name) + '</div>' +
+        '<div class="font-semibold text-white mb-1 installer-list-name">' + multilineHtml(installer.name) + '</div>' +
         (installer.contact ? '<div class="text-gray-300 mb-1">' + escapeHtml(installer.contact) + '</div>' : '') +
         (installer.address ? '<div class="text-gray-500 text-sm">' + escapeHtml(installer.address) + '</div>' : '');
 
