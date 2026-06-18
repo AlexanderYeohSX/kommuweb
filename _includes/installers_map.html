@@ -135,6 +135,13 @@
     return String(str || '').replace(/\\n/g, '\n').replace(/\r?\n/g, ' ').trim();
   }
 
+  function listPhoneHtml(contact) {
+    const c = String(contact || '').trim();
+    if (!c) return '';
+    const spaced = c.replace(/(\d{3})(?=\d)/g, '$1\u200b');
+    return '<span class="installer-list-phone" x-apple-data-detectors="none">' + escapeHtml(spaced) + '</span>';
+  }
+
   function phoneHtml(contact) {
     const c = String(contact || '').trim();
     if (!c) return '';
@@ -247,7 +254,7 @@
       infoTd.className = 'px-4 py-4 align-top';
       infoTd.innerHTML =
         '<div class="font-semibold text-white mb-1 installer-list-name">' + multilineHtml(installer.name) + '</div>' +
-        (installer.contact ? '<div class="text-gray-300 mb-1">' + escapeHtml(installer.contact) + '</div>' : '') +
+        (installer.contact ? '<div class="text-gray-300 mb-1">' + listPhoneHtml(installer.contact) + '</div>' : '') +
         (installer.address ? '<div class="text-gray-500 text-sm">' + escapeHtml(installer.address) + '</div>' : '');
 
       tr.appendChild(stateTd);
@@ -287,6 +294,8 @@
       minZoom: isMobileMap() ? 1 : 6,
       zoomControl: false,
       attributionControl: false,
+      dragging: !isMobileMap(),
+      tap: !isMobileMap(),
       scrollWheelZoom: false,
       doubleClickZoom: false,
       touchZoom: false,
@@ -345,6 +354,13 @@
 
   window.addEventListener('resize', function () {
     if (!map) return;
+    if (isMobileMap()) {
+      map.dragging.disable();
+      map.tap && map.tap.disable();
+    } else {
+      map.dragging.enable();
+      map.tap && map.tap.enable();
+    }
     updateAllMarkerIcons();
     if (map._popup && map._popup.isOpen()) return;
     fitAllMarkers(false);
