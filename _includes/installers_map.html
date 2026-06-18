@@ -19,25 +19,44 @@
 
   const API_URL = {{ site.installers_api_url | jsonify }};
   const DEV_SAMPLE = {{ site.data.installers_sample | jsonify }};
-  const INSTALLER_PIN_URL = {{ '/assets/img/installer-pin.svg' | relative_url | jsonify }};
 
-  function installerPinIcon() {
+  function installerPinSvg(w, h, uid) {
+    const safeUid = String(uid).replace(/[^a-zA-Z0-9_-]/g, '-');
+    const gradId = 'installer-pin-grad-' + safeUid;
+    const shadowId = 'installer-pin-shadow-' + safeUid;
+    return (
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" width="' + w + '" height="' + h + '" fill="none" aria-hidden="true">' +
+        '<defs>' +
+          '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox" gradientTransform="rotate(45 0.5 0.5)">' +
+            '<stop offset="0%" stop-color="#5D26C1"/>' +
+            '<stop offset="100%" stop-color="#240046"/>' +
+          '</linearGradient>' +
+          '<filter id="' + shadowId + '" x="-50%" y="-30%" width="200%" height="200%">' +
+            '<feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#000000" flood-opacity="0.45"/>' +
+            '<feDropShadow dx="0" dy="3" stdDeviation="2.2" flood-color="#000000" flood-opacity="0.3"/>' +
+          '</filter>' +
+        '</defs>' +
+        '<path filter="url(#' + shadowId + ')" fill="url(#' + gradId + ')" stroke="#1a0038" stroke-width="1" stroke-linejoin="round" fill-rule="evenodd" clip-rule="evenodd" d="M16 0C8.268 0 2 6.268 2 14c0 10.5 14 28 14 28s14-17.5 14-28C30 6.268 23.732 0 16 0zm0 20a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"/>' +
+      '</svg>'
+    );
+  }
+
+  function installerPinIcon(uid) {
     const mobile = isMobileMap();
     const w = mobile ? 21 : 26;
     const h = mobile ? 28 : 32;
-    return L.icon({
-      iconUrl: INSTALLER_PIN_URL,
+    return L.divIcon({
+      className: 'installer-leaflet-pin',
+      html: installerPinSvg(w, h, uid),
       iconSize: [w, h],
       iconAnchor: [w / 2, h],
-      popupAnchor: [0, -(h - 3)],
-      className: 'installer-leaflet-pin'
+      popupAnchor: [0, -(h - 3)]
     });
   }
 
   function updateAllMarkerIcons() {
-    const icon = installerPinIcon();
     Object.keys(markersById).forEach(function (id) {
-      markersById[id].setIcon(icon);
+      markersById[id].setIcon(installerPinIcon(id));
     });
   }
 
@@ -321,7 +340,7 @@
       latLngs.push(ll);
       allMarkerLatLngs.push(ll);
 
-      const marker = L.marker(ll, { icon: installerPinIcon() }).addTo(map);
+      const marker = L.marker(ll, { icon: installerPinIcon(installer.id) }).addTo(map);
       marker.bindPopup(popupHtml(installer), { autoPan: false });
       marker.on('click', function (e) {
         L.DomEvent.stopPropagation(e);
