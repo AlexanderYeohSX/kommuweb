@@ -215,6 +215,10 @@ nav.fixed,
   margin-top: 4px;
 }
 
+.installer-popup-contact {
+  margin-top: 6px;
+}
+
 .installer-popup-muted {
   color: #b0b0b0;
   margin-top: 4px;

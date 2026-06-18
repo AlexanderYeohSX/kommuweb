@@ -162,6 +162,8 @@
     return '<span class="installer-list-phone" x-apple-data-detectors="none">' + escapeHtml(spaced) + '</span>';
   }
 
+  const WHATSAPP_PREFILL = 'Hello, I would like to ask about KommuAssist installation.';
+
   function phoneHtml(contact) {
     const c = String(contact || '').trim();
     if (!c) return '';
@@ -172,8 +174,11 @@
     } else if (!digits.startsWith('60')) {
       digits = '60' + digits;
     }
+    const waUrl =
+      'https://wa.me/' + digits +
+      '?text=' + encodeURIComponent(WHATSAPP_PREFILL);
     return (
-      '<a class="installer-popup-phone" href="https://wa.me/' + escapeHtml(digits) + '" target="_blank" rel="noopener noreferrer">' +
+      '<a class="installer-popup-phone" href="' + escapeHtml(waUrl) + '" target="_blank" rel="noopener noreferrer">' +
       '<i class="fab fa-whatsapp installer-popup-wa-icon" aria-hidden="true"></i>' +
       '<span>' + escapeHtml(c) + '</span>' +
       '</a>'
@@ -190,7 +195,7 @@
     return (
       '<div class="installer-popup-name">' + multilineHtml(installer.name) + '</div>' +
       (showInstaller ? '<div class="installer-popup-person">' + escapeHtml(installer.installer_name) + '</div>' : '') +
-      (installer.contact ? '<div>' + phoneHtml(installer.contact) + '</div>' : '') +
+      (installer.contact ? '<div class="installer-popup-contact">' + phoneHtml(installer.contact) + '</div>' : '') +
       (installer.address ? '<div class="installer-popup-muted">' + escapeHtml(installer.address) + '</div>' : '')
     );
   }
