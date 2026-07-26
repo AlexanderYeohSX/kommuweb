@@ -2,14 +2,20 @@
 
 Go Lambda (`CurlecGateway`) serving `https://aws.kommu.ai` Curlec/Razorpay Standard Checkout, plus AWS CDK for deploy.
 
-> **Repo split:** This tree currently lives inside [kommuweb](https://github.com/AlexanderYeohSX/kommuweb) because the cloud agent cannot create `kommuai/cmd_aws`. To publish the private org repo from a machine with org admin + `gh` write access:
+> **Important — source recovery:** The cloud agent that authored this tree did **not** have access to the wiped local `cmd_aws` history (`main.go` / `curlec_standard.go` / `curlec_receipt.go`). This is a **reconstructed** Standard Checkout + Meta CAPI + Sheets + email module that implements the notes-overflow fix and RM1 allowlist. Prefer this workflow before replacing production:
+>
+> 1. On the Mac that still has Cursor Local History (Jun 15 02:43: `t0eP.go` / `I2QA.go` / `NGLw.go`), restore those three files into your local `cmd_aws/payment/`.
+> 2. Port into that restored tree: `checkout_context.go`, `rm1_allowlist.go`, slim `trimNotesMap` / `slimRazorpayNotes`, create-path Dynamo put, fulfill hydrate, and CDK DynamoDB table.
+> 3. Run `go test` + `make zip` against the restored+ported tree, then deploy.
+>
+> Deploying **this** reconstructed zip will replace the Jun 15 production binary; only do that if you accept the narrower feature surface (Standard Checkout paths are covered; legacy Stripe/HTML richness may differ).
+
+> **Repo split:** Cloud `gh` cannot create `kommuai/cmd_aws`. To publish the private org repo from a machine with org admin:
 >
 > ```bash
-> # from kommuweb root
 > git subtree split -P cmd_aws -b cmd-aws-export
-> gh repo create kommuai/cmd_aws --private --source=. --remote=cmdaws
-> # or: mkdir ../cmd_aws && git archive cmd-aws-export | tar -x -C ../cmd_aws
-> cd /path/to/cmd_aws && git init && git add payment cdk README.md && git commit -m "Initial import" && \
+> mkdir -p ../cmd_aws && git archive cmd-aws-export | tar -x -C ../cmd_aws
+> cd ../cmd_aws && git init && git add . && git commit -m "Initial import" && \
 >   gh repo create kommuai/cmd_aws --private --source=. --remote=origin --push
 > ```
 
