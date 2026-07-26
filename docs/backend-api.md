@@ -2,12 +2,20 @@
 
 Implementation: Go Lambda in [`cmd_aws/payment/`](../cmd_aws/payment/). Deploy with [`cmd_aws/cdk/`](../cmd_aws/cdk/) to the existing **CurlecGateway** function behind `https://aws.kommu.ai`.
 
+> Intended long-term home: private repo `kommuai/cmd_aws` (payment + cdk only). Until that repo is created from a machine with org admin, sources are tracked in this kommuweb tree — see [`cmd_aws/README.md`](../cmd_aws/README.md).
+
 The [`server/`](../server/) Node package is a reference implementation only (not production).
 
 ## Authentication
 
-- **Orders / Subscriptions**: HTTP Basic with `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` (server-side only).
+- **Orders / Subscriptions**: HTTP Basic with Curlec key id/secret (server-side only; env `CURLEC_KEY_ID` / `CURLEC_KEY_SECRET`).
 - **Browser**: receives only `key_id` and `order_id` or `subscription_id`.
+
+## Notes + checkout context
+
+Razorpay allows **max 15 note pairs**. Full cart items and Meta attribution are stored in DynamoDB `kommu-checkout-context` (keyed by `order_id` / `subscription_id`). Razorpay notes stay slim for display/idempotency only.
+
+Allowlisted developer emails are forced to **RM 1.00** for production smoke tests — see [operations.md](operations.md).
 
 ## POST /curlec/orders
 

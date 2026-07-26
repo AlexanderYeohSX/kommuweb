@@ -35,3 +35,13 @@ social:
   - title: facebook
     url: https://www.facebook.com/groups/kommu.official
 
+# Do not copy backend / tooling into the static site build
+exclude:
+  - cmd_aws
+  - server
+  - docs
+  - vendor
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+

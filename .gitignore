@@ -10,7 +10,15 @@ Gemfile.lock
 .DS_Store
 img/.DS_Store
 assets/.DS_Store
-cmd_aws/
 server/node_modules
 docs/output/
 docs/scripts/build-pdf.sh
+
+# cmd_aws build artifacts (sources are tracked; extract to kommuai/cmd_aws when ready)
+cmd_aws/payment/bootstrap
+cmd_aws/payment/payment
+cmd_aws/payment/*.zip
+cmd_aws/payment/.env
+cmd_aws/cdk/node_modules
+cmd_aws/cdk/cdk.out
+cmd_aws/kommu-chat/

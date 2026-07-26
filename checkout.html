@@ -107,8 +107,9 @@ title: Checkout
       </div>
       <div>
         <label for="checkoutEmail" class="block h5 font-bold text-gray mb-1">Email</label>
-        <input id="checkoutEmail" type="email" class="w-full fillform-black border-1 btn-border-gray px-4 py-2 rounded-checkoutform" aria-describedby="checkoutEmailError" required>
+        <input id="checkoutEmail" type="email" class="w-full fillform-black border-1 btn-border-gray px-4 py-2 rounded-checkoutform" aria-describedby="checkoutEmailError checkoutDevTestHint" required>
         <p id="checkoutEmailError" class="text-red-400 text-sm mt-1" hidden>Please enter a valid email address.</p>
+        <p id="checkoutDevTestHint" class="text-blue-400 text-sm mt-1" hidden>Dev test: server will charge RM1 and mark this as DEV_TEST.</p>
       </div>
       <div>
         <label for="checkoutMobile" class="block h5 font-bold text-gray mb-1">Contact number</label>
@@ -380,6 +381,18 @@ title: Checkout
     }, message: 'Please enter a valid name.' });
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     attachValidation(emailEl, { errorId: 'checkoutEmailError', test: v => emailRegex.test(v), message: 'Please enter a valid email address.' });
+    (function wireDevTestHint(){
+      const hint = document.getElementById('checkoutDevTestHint');
+      if (!emailEl || !hint) return;
+      const allow = { 'alexanderyeoh@kommu.ai': 1, 'keanwei@kommu.ai': 1 };
+      const sync = () => {
+        const e = (emailEl.value || '').trim().toLowerCase();
+        hint.hidden = !allow[e];
+      };
+      emailEl.addEventListener('input', sync);
+      emailEl.addEventListener('change', sync);
+      sync();
+    })();
     attachValidation(icEl,    { errorId: 'checkoutICError',    sanitizeDigitsMaxLen: 12, test: v => /^\d{12}$/.test(v), message: 'Please enter exactly 12 digits.' });
     attachValidation(pcEl,    { errorId: 'checkoutPostcodeError', sanitizeDigitsMaxLen: 10, test: v => /^\d{4,10}$/.test(v), message: 'Please enter 4 to 10 digits.' });
     attachValidation(mobEl,   { errorId: 'checkoutMobileError', test: v => /^\+?[0-9][0-9 \-]{6,}$/.test(v), message: 'Please provide a valid mobile phone number.' });
