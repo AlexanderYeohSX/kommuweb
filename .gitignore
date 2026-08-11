@@ -14,3 +14,5 @@ cmd_aws/
 server/node_modules
 docs/output/
 docs/scripts/build-pdf.sh
+# Local agent preview
+_preview_ka2.html

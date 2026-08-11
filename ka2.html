@@ -1164,9 +1164,257 @@ stylesheet: products
       .performance-section,
       .safety-section,
       .perception-tabs,
-      .ports-section {
+      .ports-section,
+      .inside-section {
         padding-left: 1.5rem !important;
         padding-right: 1.5rem !important;
+      }
+    }
+
+    /* --- Inside / Explode scroll scrub (under Ports) --- */
+    .inside-section {
+      position: relative;
+      max-width: 1100px;
+      margin: 6rem auto 0;
+      color: #eaeaea;
+      /* Tall track so sticky child can pin while scrubbing */
+      height: calc(var(--vh, 1vh) * 360);
+      min-height: calc(var(--vh, 1vh) * 360);
+      z-index: 2;
+    }
+
+    .inside-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      overflow: hidden;
+      z-index: 2;
+      padding: clamp(1.25rem, 3vh, 2.25rem) clamp(1.25rem, 4vw, 3.5rem) 1.25rem;
+      box-sizing: border-box;
+      background: #000;
+      isolation: isolate;
+    }
+
+    .inside-header {
+      width: min(36rem, 92%);
+      z-index: 5;
+      flex: 0 0 auto;
+      padding: 0;
+      position: relative;
+    }
+
+    .inside-header .section-eyebrow {
+      color: #fff;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.2rem;
+      line-height: 1.2;
+    }
+
+    .inside-header h2.section-title {
+      margin: 0 0 0.4rem;
+      line-height: 1.05;
+      font-size: clamp(2rem, 4.2vw, 3.35rem);
+    }
+
+    .inside-header p {
+      margin: 0;
+      max-width: 34rem;
+      font-weight: 400;
+      font-size: clamp(0.85rem, 1.15vw, 1.05rem);
+      line-height: 1.35;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .inside-stage {
+      position: relative;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .inside-media {
+      position: relative;
+      /* Native frame ratio preserved; JS fits width/height into the stage */
+      --inside-ar: 1;
+      width: min(920px, 94%, calc((100dvh - 12rem) * var(--inside-ar)));
+      height: auto;
+      aspect-ratio: var(--inside-ar);
+      max-width: 100%;
+      max-height: min(78dvh, 820px);
+      background: #000;
+      border-radius: 0;
+      overflow: visible;
+      z-index: 1;
+      flex: 0 0 auto;
+    }
+
+    .inside-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      background: #000;
+      pointer-events: none;
+      /* Bitmap is sized to the frame; CSS box matches aspect via parent */
+      object-fit: contain;
+    }
+
+    .inside-poster {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      border-radius: 0;
+      pointer-events: none;
+      background: #000;
+    }
+
+    .inside-poster.is-hidden {
+      display: none;
+    }
+
+    .inside-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .inside-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .inside-lines line {
+      stroke: #fff;
+      stroke-width: 1.35;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .inside-lines circle {
+      fill: #fff;
+    }
+
+    .inside-label {
+      position: absolute;
+      color: #fff;
+      font-weight: 500;
+      font-size: clamp(0.9rem, 1.15vw, 1.1rem);
+      letter-spacing: 0.01em;
+      line-height: 1.22;
+      text-shadow: none;
+      opacity: 0;
+      white-space: nowrap;
+      z-index: 4;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+
+    /* left% = edge facing the model */
+    .inside-label.is-left {
+      text-align: right;
+      transform: translate(-100%, -50%) translateY(6px);
+    }
+
+    .inside-label.is-right {
+      text-align: left;
+      transform: translate(0%, -50%) translateY(6px);
+    }
+
+    .inside-label.is-left.in {
+      opacity: 1;
+      transform: translate(-100%, -50%) translateY(0);
+    }
+
+    .inside-label.is-right.in {
+      opacity: 1;
+      transform: translate(0%, -50%) translateY(0);
+    }
+
+    .inside-label .inside-label-sub {
+      display: block;
+      font-size: 0.92em;
+      font-weight: 500;
+      opacity: 0.95;
+      margin-top: 0.05rem;
+    }
+
+    .inside-scroll-cue {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(0.6rem, 2vh, 1.25rem);
+      width: 1px;
+      height: clamp(2rem, 5.5vh, 3.25rem);
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.28);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    @media (max-width: 768px) {
+      .inside-section {
+        height: calc(var(--vh, 1vh) * 300);
+        min-height: calc(var(--vh, 1vh) * 300);
+        margin-top: 3rem;
+      }
+
+      .inside-sticky {
+        padding: 1rem 0.85rem 1.15rem;
+      }
+
+      .inside-header h2.section-title {
+        font-size: clamp(1.65rem, 7vw, 2.25rem);
+      }
+
+      .inside-media {
+        width: min(100%, 520px, calc((100dvh - 10rem) * var(--inside-ar)));
+        max-height: min(62dvh, 560px);
+        /* aspect-ratio comes from --inside-ar / JS (matches active frame file) */
+      }
+
+      .inside-label {
+        font-size: 0.72rem;
+        white-space: normal;
+        max-width: 5.75rem;
+        line-height: 1.15;
+      }
+
+      .inside-lines line {
+        stroke-width: 1.1;
+      }
+
+      .inside-scroll-cue {
+        height: 1.75rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .inside-label.is-left,
+      .inside-label.is-left.in {
+        transition: none;
+        opacity: 1;
+        transform: translate(-100%, -50%);
+      }
+      .inside-label.is-right,
+      .inside-label.is-right.in {
+        transition: none;
+        opacity: 1;
+        transform: translate(0%, -50%);
       }
     }
 
@@ -1194,6 +1442,7 @@ stylesheet: products
       .safety-section,
       .perception-tabs,
       .ports-section,
+      .inside-section,
       .frame-section {
         scroll-snap-align: start;
       }
@@ -1966,6 +2215,56 @@ document.addEventListener('DOMContentLoaded', function(){
             </div>
           </figure>
         </div>
+      </div>
+  </section>
+
+  <!-- INSIDE / EXPLODE (scroll-scrubbed, under Ports) -->
+  <section class="inside-section" id="inside" data-pin-vh="360"
+           aria-label="KommuAssist internal hardware explode">
+      <div class="inside-sticky">
+        <div class="inside-header">
+          <div class="h3 section-eyebrow">Inside</div>
+          <h2 class="h1 section-title">Designed from the core.</h2>
+          <p class="h4 text-left">
+            Scroll to open the sandwich -
+            aluminum unibody, PCB, Rockchip RK3588, and automotive cameras.
+          </p>
+        </div>
+
+        <div class="inside-stage">
+          <div class="inside-media" id="insideMedia"
+               data-frames="60"
+               data-desktop-prefix="{{ '/assets/ka2_explode_seq/d_' | relative_url }}"
+               data-mobile-prefix="{{ '/assets/ka2_explode_seq/m_' | relative_url }}"
+               data-desktop-poster="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
+               data-mobile-poster="{{ '/assets/ka2_explode_mobile_poster.png' | relative_url }}"
+               data-ext=".jpg">
+            <canvas id="insideCanvas" class="inside-canvas" width="1440" height="1440"
+                    aria-label="KommuPilot explode animation"></canvas>
+            <img id="insidePoster" class="inside-poster"
+                 src="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
+                 alt="" decoding="async" />
+
+            <svg class="inside-lines" id="insideLines" aria-hidden="true"></svg>
+
+            <!-- Coordinates for open frame (60-frame seq); JS CONTACT overrides these. -->
+            <div class="inside-overlay" aria-hidden="true">
+              <span class="inside-label is-left" id="il-pcb"
+                    style="left:16%; top:38%;"
+                    data-from="0.58" data-ax="33" data-ay="38">PCB</span>
+              <span class="inside-label is-left" id="il-case"
+                    style="left:16%; top:56%;"
+                    data-from="0.58" data-ax="33.5" data-ay="56.5">Aluminium Unibody</span>
+              <span class="inside-label is-right" id="il-rockchip"
+                    style="left:71%; top:53%;"
+                    data-from="0.58" data-ax="57.5" data-ay="53.5">Rockchip RK3588<span class="inside-label-sub">6 TOPS</span></span>
+              <span class="inside-label is-right" id="il-cams"
+                    style="left:66%; top:85%;"
+                    data-from="0.58" data-ax="53.8" data-ay="85.5">Panoramic Cameras</span>
+            </div>
+          </div>
+        </div>
+        <div class="inside-scroll-cue" aria-hidden="true"></div>
       </div>
   </section>
 
@@ -2763,6 +3062,327 @@ document.addEventListener('DOMContentLoaded', function(){
       window.addEventListener('resize', () => { positionBaseline(); positionActiveUnderline(); }, { passive: true });
       setTimeout(() => { positionBaseline(); positionActiveUnderline(); }, 0); // after initial layout
     })();
+    // 🧱 Inside / Explode scroll scrub (under Ports) — frame sequence + labeled callouts
+    (function initInsideExplodeScrub() {
+      const section = document.getElementById('inside');
+      if (!section) return;
+
+      const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+      const mobileMq = window.matchMedia('(max-width: 768px)');
+
+      const media = document.getElementById('insideMedia');
+      const canvas = document.getElementById('insideCanvas');
+      const poster = document.getElementById('insidePoster');
+      const linesSvg = document.getElementById('insideLines');
+      const labels = Array.from(section.querySelectorAll('.inside-label'));
+      if (!media || !canvas) return;
+
+      const ctx = canvas.getContext('2d', { alpha: false });
+      const frameCount = parseInt(media.dataset.frames || '60', 10) || 60;
+      const ext = media.dataset.ext || '.jpg';
+
+      // Optional pin length override (viewport heights)
+      const pinVh = parseFloat(section.dataset.pinVh || '');
+      if (!Number.isNaN(pinVh) && pinVh > 0) {
+        const h = `calc(var(--vh, 1vh) * ${pinVh})`;
+        section.style.height = h;
+        section.style.minHeight = h;
+      }
+
+      function sectionProgress(el) {
+        const rect = el.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const pin = Math.max(1, rect.height - vh);
+        const scrolled = clamp(-rect.top, 0, pin);
+        return clamp(scrolled / pin, 0, 1);
+      }
+
+      function frameUrl(i, mobile) {
+        const prefix = mobile ? media.dataset.mobilePrefix : media.dataset.desktopPrefix;
+        const n = String(i).padStart(2, '0');
+        // Cache-bust when frames are re-exported
+        return `${prefix}${n}${ext}?v=6`;
+      }
+
+      // ---- Frame cache (desktop + mobile) ----
+      const cache = { desktop: new Array(frameCount), mobile: new Array(frameCount) };
+      let loadedDesktop = 0;
+      let loadedMobile = 0;
+      let activeMobile = mobileMq.matches;
+      let drawnIndex = -1;
+      let smoothP = 0;
+      let targetP = 0;
+      let running = false;
+      let inView = false;
+
+      function loadSet(mobile) {
+        const key = mobile ? 'mobile' : 'desktop';
+        const bucket = cache[key];
+        for (let i = 1; i <= frameCount; i++) {
+          if (bucket[i - 1]) continue;
+          const img = new Image();
+          img.decoding = 'async';
+          img.src = frameUrl(i, mobile);
+          img.onload = () => {
+            bucket[i - 1] = img;
+            if (mobile) loadedMobile++; else loadedDesktop++;
+            // Draw as soon as first frame ready
+            if (drawnIndex < 0 && i === 1) drawFrame(0);
+            else if (inView) drawFrame(Math.round(smoothP * (frameCount - 1)));
+            else fitMediaToStage();
+          };
+        }
+      }
+
+      function ensureSet() {
+        activeMobile = mobileMq.matches;
+        loadSet(activeMobile);
+        // Warm the other set in idle time
+        const warm = () => loadSet(!activeMobile);
+        if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 2000 });
+        else setTimeout(warm, 600);
+      }
+
+      function resizeCanvas() {
+        // Match the active frame file's native pixel size (no stretch in bitmap space)
+        const img = (activeMobile ? cache.mobile : cache.desktop)[Math.max(0, drawnIndex)];
+        const w = img?.naturalWidth || (activeMobile ? 1080 : 1440);
+        const h = img?.naturalHeight || (activeMobile ? 1216 : 1440);
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+      }
+
+      // Keep the media box aspect ratio identical to the frame file, fitted into the stage
+      function fitMediaToStage() {
+        const stage = media.parentElement;
+        if (!stage) return;
+        const bucket = activeMobile ? cache.mobile : cache.desktop;
+        const img = bucket[Math.max(0, drawnIndex)] || bucket.find(Boolean);
+        const nw = img?.naturalWidth || (activeMobile ? 1080 : 1440);
+        const nh = img?.naturalHeight || (activeMobile ? 1216 : 1440);
+        const ar = nw / Math.max(1, nh);
+
+        media.style.setProperty('--inside-ar', String(ar));
+        media.style.aspectRatio = `${nw} / ${nh}`;
+
+        const sr = stage.getBoundingClientRect();
+        if (sr.width < 2 || sr.height < 2) return;
+
+        const maxW = Math.min(sr.width * 0.96, activeMobile ? 520 : 920);
+        const maxH = Math.min(sr.height * 0.96, activeMobile ? 560 : 820);
+        let w = maxW;
+        let h = w / ar;
+        if (h > maxH) {
+          h = maxH;
+          w = h * ar;
+        }
+        media.style.width = `${Math.max(1, Math.floor(w))}px`;
+        media.style.height = `${Math.max(1, Math.floor(h))}px`;
+      }
+
+      function drawFrame(index) {
+        const bucket = activeMobile ? cache.mobile : cache.desktop;
+        const img = bucket[clamp(index, 0, frameCount - 1)];
+        if (!img) return;
+        resizeCanvas();
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // 1:1 draw — CSS box already matches native aspect, so no stretch
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        drawnIndex = index;
+        if (poster) poster.classList.add('is-hidden');
+        fitMediaToStage();
+      }
+
+      // ---- Labels + lines in media coords (open frame; ax shifted left after HERO_Cam recenter) ----
+      const LINE_LEN = 11; // % default — equal unless overridden per label
+      const TEXT_GAP_PX = 14; // default gap between line end and text
+      const TIP_CLEAR_PX = 18; // default gap so tip/dot never touches the part
+      // Contact points; optional lineLen / textGapPx / tipClearPx overrides
+      const CONTACT = {
+        'il-pcb': { ax: 33.0, ay: 38.0 },
+        'il-case': { ax: 33.5, ay: 56.5, lineLen: 11, tipClearPx: 10, textGapPx: 8 },
+        'il-rockchip': { ax: 57.5, ay: 53.5, lineLen: 24, tipClearPx: 14, textGapPx: 12 },
+        'il-cams': { ax: 53.8, ay: 85.5, lineLen: 14 },
+      };
+
+      function syncLines() {
+        if (!linesSvg) return;
+        const mr = media.getBoundingClientRect();
+        if (mr.width < 2 || mr.height < 2) return;
+
+        while (linesSvg.firstChild) linesSvg.removeChild(linesSvg.firstChild);
+        const ns = 'http://www.w3.org/2000/svg';
+        const DOT_R = Math.max(2.2, mr.width * 0.0024);
+
+        labels.forEach(label => {
+          if (!label.classList.contains('in') && !reduceMotion) return;
+          const c = CONTACT[label.id] || {};
+          const ax = c.ax != null ? c.ax : parseFloat(label.dataset.ax);
+          const ay = c.ay != null ? c.ay : parseFloat(label.dataset.ay);
+          if (Number.isNaN(ax) || Number.isNaN(ay)) return;
+          const isLeft = label.classList.contains('is-left');
+
+          const lineLen = c.lineLen != null ? c.lineLen : LINE_LEN;
+          const textGap = ((c.textGapPx != null ? c.textGapPx : TEXT_GAP_PX) / mr.width) * 100;
+          const tipClear = ((c.tipClearPx != null ? c.tipClearPx : TIP_CLEAR_PX) / mr.width) * 100;
+
+          // Tip stops short of the component; leader toward text; text beyond line + gap
+          const x2 = isLeft ? ax - tipClear : ax + tipClear;
+          const y2 = ay;
+          const x1 = isLeft ? x2 - lineLen : x2 + lineLen;
+          const y1 = ay;
+          const textEdge = isLeft ? x1 - textGap : x1 + textGap;
+
+          label.style.left = textEdge.toFixed(2) + '%';
+          label.style.top = y1.toFixed(2) + '%';
+          label.dataset.ax = String(ax);
+          label.dataset.ay = String(ay);
+
+          const line = document.createElementNS(ns, 'line');
+          line.setAttribute('x1', x1.toFixed(2) + '%');
+          line.setAttribute('y1', y1.toFixed(2) + '%');
+          line.setAttribute('x2', x2.toFixed(2) + '%');
+          line.setAttribute('y2', y2.toFixed(2) + '%');
+          linesSvg.appendChild(line);
+
+          const dot = document.createElementNS(ns, 'circle');
+          dot.setAttribute('cx', x2.toFixed(2) + '%');
+          dot.setAttribute('cy', y2.toFixed(2) + '%');
+          dot.setAttribute('r', DOT_R.toFixed(2));
+          linesSvg.appendChild(dot);
+        });
+      }
+
+      function updateLabels(p) {
+        labels.forEach(label => {
+          const from = parseFloat(label.dataset.from || '0');
+          const on = reduceMotion ? true : p >= from;
+          label.classList.toggle('in', on);
+        });
+        syncLines();
+      }
+
+      // Mobile crop (m_* frames) — contact points shifted for portrait framing
+      const desktopPos = {
+        'il-pcb': { ax: '33', ay: '38' },
+        'il-case': { ax: '33.5', ay: '56.5' },
+        'il-rockchip': { ax: '57.5', ay: '53.5' },
+        'il-cams': { ax: '53.8', ay: '85.5' },
+      };
+      const mobilePos = {
+        'il-pcb': { ax: '27', ay: '35' },
+        'il-case': { ax: '27', ay: '54' },
+        'il-rockchip': { ax: '61', ay: '55' },
+        'il-cams': { ax: '59', ay: '84' },
+      };
+
+      function applyLabelLayout() {
+        const map = mobileMq.matches ? mobilePos : desktopPos;
+        labels.forEach(el => {
+          const m = map[el.id];
+          if (!m) return;
+          el.dataset.ax = m.ax;
+          el.dataset.ay = m.ay;
+        });
+        if (poster) {
+          const src = mobileMq.matches ? media.dataset.mobilePoster : media.dataset.desktopPoster;
+          if (src) poster.src = src;
+        }
+        fitMediaToStage();
+        syncLines();
+      }
+
+      // ---- Smooth scrub loop ----
+      // Finish explode partway through the pin; remaining scroll holds the open pose
+      const OPEN_AT = 0.65; // scroll progress where last frame is reached
+      function progressToIndex(p) {
+        const scrubP = clamp(p / OPEN_AT, 0, 1);
+        return scrubP * (frameCount - 1);
+      }
+
+      function tick() {
+        if (!running) return;
+        targetP = sectionProgress(section);
+        // GSAP-style scrub lag — lower lerp = longer catch-up (~0.6–0.9s)
+        const smooth = reduceMotion ? 1 : (mobileMq.matches ? 0.09 : 0.07);
+        smoothP = lerp(smoothP, targetP, smooth);
+        if (Math.abs(smoothP - targetP) < 0.0005) smoothP = targetP;
+
+        const idxFloat = progressToIndex(smoothP);
+        const idx = Math.round(idxFloat);
+        if (idx !== drawnIndex) drawFrame(idx);
+
+        updateLabels(smoothP);
+        section.dataset.progress = smoothP.toFixed(3);
+
+        // Keep looping while in view or still catching up
+        if (inView || Math.abs(smoothP - targetP) > 0.001) {
+          requestAnimationFrame(tick);
+        } else {
+          running = false;
+        }
+      }
+
+      function startLoop() {
+        if (running) return;
+        running = true;
+        requestAnimationFrame(tick);
+      }
+
+      function onScroll() { startLoop(); }
+
+      // Preload when near viewport
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          inView = e.isIntersecting;
+          if (e.isIntersecting) {
+            ensureSet();
+            startLoop();
+          }
+        });
+      }, { rootMargin: '40% 0px', threshold: 0.01 });
+      io.observe(section);
+
+      applyLabelLayout();
+      ensureSet();
+      // Initial draw poster/frame 0
+      targetP = smoothP = sectionProgress(section);
+      if (reduceMotion) {
+        drawFrame(frameCount - 1);
+        updateLabels(1);
+      } else {
+        drawFrame(Math.round(progressToIndex(smoothP)));
+        updateLabels(smoothP);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', () => {
+        applyLabelLayout();
+        drawnIndex = -1;
+        startLoop();
+      }, { passive: true });
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => {
+          fitMediaToStage();
+          syncLines();
+        });
+        ro.observe(media.parentElement || media);
+      }
+      mobileMq.addEventListener?.('change', () => {
+        applyLabelLayout();
+        ensureSet();
+        drawnIndex = -1;
+        startLoop();
+      });
+
+      window.insideProgress = () => sectionProgress(section);
+    })();
+
     // 🔌 Ports & Connectivity label animations
     // --- Ports labels entrance (ordered, tunable, scroll‑linked) ---
     (function initPortsLabels() {
