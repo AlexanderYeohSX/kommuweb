@@ -1202,33 +1202,20 @@ stylesheet: products
     }
 
     .inside-header {
-      width: min(36rem, 92%);
+      width: 100%;
       z-index: 5;
       flex: 0 0 auto;
       padding: 0;
       position: relative;
+      align-self: start;
     }
 
-    .inside-header .section-eyebrow {
-      color: #fff;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.2rem;
-      line-height: 1.2;
-    }
-
-    .inside-header h2.section-title {
-      margin: 0 0 0.4rem;
-      line-height: 1.05;
-      font-size: clamp(2rem, 4.2vw, 3.35rem);
+    .inside-header h2 {
+      margin-bottom: 1.5rem;
     }
 
     .inside-header p {
-      margin: 0;
-      max-width: 34rem;
-      font-weight: 400;
-      font-size: clamp(0.85rem, 1.15vw, 1.05rem);
-      line-height: 1.35;
-      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 1rem;
     }
 
     .inside-stage {
@@ -1375,10 +1362,6 @@ stylesheet: products
 
       .inside-sticky {
         padding: 1rem 0.85rem 1.15rem;
-      }
-
-      .inside-header h2.section-title {
-        font-size: clamp(1.65rem, 7vw, 2.25rem);
       }
 
       .inside-media {
@@ -2225,9 +2208,9 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="inside-header">
           <div class="h3 section-eyebrow">Inside</div>
           <h2 class="h1 section-title">Designed from the core.</h2>
-          <p class="h4 text-left">
-            Scroll to open the sandwich -
-            aluminum unibody, PCB, Rockchip RK3588, and automotive cameras.
+          <p class="h4 font-bold text-gray text-left">
+            <span class="h4 font-bold text-white">An 8nm 8-core CPU and Mali-G610 GPU, with 4GB LPDDR4X and 128GB eMMC.</span>
+            Runs Ubuntu 22.04 and three CAN FD buses for low-latency control between the model and the vehicle.
           </p>
         </div>
 
@@ -2249,18 +2232,24 @@ document.addEventListener('DOMContentLoaded', function(){
 
             <!-- Coordinates for open frame (60-frame seq); JS CONTACT overrides these. -->
             <div class="inside-overlay" aria-hidden="true">
-              <span class="inside-label is-left" id="il-pcb"
-                    style="left:16%; top:38%;"
-                    data-from="0.58" data-ax="33" data-ay="38">PCB</span>
+              <span class="inside-label is-left" id="il-can"
+                    style="left:16%; top:33%;"
+                    data-from="0.58" data-ax="36.5" data-ay="33.5">CAN Microcontroller</span>
               <span class="inside-label is-left" id="il-case"
                     style="left:16%; top:56%;"
                     data-from="0.58" data-ax="33.5" data-ay="56.5">Aluminium Unibody</span>
+              <span class="inside-label is-left" id="il-cam45"
+                    style="left:12%; top:80.5%;"
+                    data-from="0.58" data-ax="18" data-ay="80.5">Automotive Grade<span class="inside-label-sub">45 FOV Camera</span></span>
+              <span class="inside-label is-right" id="il-pcb"
+                    style="left:71%; top:39.5%;"
+                    data-from="0.58" data-ax="62" data-ay="39.5">PCB</span>
               <span class="inside-label is-right" id="il-rockchip"
-                    style="left:71%; top:53%;"
-                    data-from="0.58" data-ax="57.5" data-ay="53.5">Rockchip RK3588<span class="inside-label-sub">6 TOPS</span></span>
+                    style="left:71%; top:52%;"
+                    data-from="0.58" data-ax="57.5" data-ay="52.5">Rockchip RK3588<span class="inside-label-sub">6 TOPS</span></span>
               <span class="inside-label is-right" id="il-cams"
-                    style="left:66%; top:85%;"
-                    data-from="0.58" data-ax="53.8" data-ay="85.5">Panoramic Cameras</span>
+                    style="left:70%; top:85%;"
+                    data-from="0.58" data-ax="52.8" data-ay="85.5">Automotive Grade<span class="inside-label-sub">185 FOV Camera</span></span>
             </div>
           </div>
         </div>
@@ -3103,7 +3092,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const prefix = mobile ? media.dataset.mobilePrefix : media.dataset.desktopPrefix;
         const n = String(i).padStart(2, '0');
         // Cache-bust when frames are re-exported
-        return `${prefix}${n}${ext}?v=6`;
+        return `${prefix}${n}${ext}?v=9`;
       }
 
       // ---- Frame cache (desktop + mobile) ----
@@ -3204,10 +3193,12 @@ document.addEventListener('DOMContentLoaded', function(){
       const TIP_CLEAR_PX = 18; // default gap so tip/dot never touches the part
       // Contact points; optional lineLen / textGapPx / tipClearPx overrides
       const CONTACT = {
-        'il-pcb': { ax: 33.0, ay: 38.0 },
+        'il-can': { ax: 36.5, ay: 33.5, lineLen: 14, tipClearPx: 12, textGapPx: 8, textNudgeYPct: -0.45 },
         'il-case': { ax: 33.5, ay: 56.5, lineLen: 11, tipClearPx: 10, textGapPx: 8 },
-        'il-rockchip': { ax: 57.5, ay: 53.5, lineLen: 24, tipClearPx: 14, textGapPx: 12 },
-        'il-cams': { ax: 53.8, ay: 85.5, lineLen: 14 },
+        'il-cam45': { ax: 18.0, ay: 80.5, lineLen: 11, tipClearPx: 14, textGapPx: 8 },
+        'il-pcb': { ax: 62.0, ay: 39.5, lineLen: 18, tipClearPx: 28, textGapPx: 12 },
+        'il-rockchip': { ax: 57.5, ay: 52.5, lineLen: 24, tipClearPx: 14, textGapPx: 12 },
+        'il-cams': { ax: 52.8, ay: 85.5, lineLen: 18, textGapPx: 0, textOffsetPct: 2 },
       };
 
       function syncLines() {
@@ -3229,6 +3220,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
           const lineLen = c.lineLen != null ? c.lineLen : LINE_LEN;
           const textGap = ((c.textGapPx != null ? c.textGapPx : TEXT_GAP_PX) / mr.width) * 100;
+          const textOffset = c.textOffsetPct != null ? c.textOffsetPct : 0;
+          const textNudgeY = c.textNudgeYPct != null ? c.textNudgeYPct : 0;
           const tipClear = ((c.tipClearPx != null ? c.tipClearPx : TIP_CLEAR_PX) / mr.width) * 100;
 
           // Tip stops short of the component; leader toward text; text beyond line + gap
@@ -3236,10 +3229,10 @@ document.addEventListener('DOMContentLoaded', function(){
           const y2 = ay;
           const x1 = isLeft ? x2 - lineLen : x2 + lineLen;
           const y1 = ay;
-          const textEdge = isLeft ? x1 - textGap : x1 + textGap;
+          const textEdge = isLeft ? x1 - textGap - textOffset : x1 + textGap + textOffset;
 
           label.style.left = textEdge.toFixed(2) + '%';
-          label.style.top = y1.toFixed(2) + '%';
+          label.style.top = (y1 + textNudgeY).toFixed(2) + '%';
           label.dataset.ax = String(ax);
           label.dataset.ay = String(ay);
 
@@ -3269,16 +3262,20 @@ document.addEventListener('DOMContentLoaded', function(){
 
       // Mobile crop (m_* frames) — contact points shifted for portrait framing
       const desktopPos = {
-        'il-pcb': { ax: '33', ay: '38' },
+        'il-can': { ax: '36.5', ay: '33.5' },
         'il-case': { ax: '33.5', ay: '56.5' },
-        'il-rockchip': { ax: '57.5', ay: '53.5' },
-        'il-cams': { ax: '53.8', ay: '85.5' },
+        'il-cam45': { ax: '18', ay: '80.5' },
+        'il-pcb': { ax: '62', ay: '39.5' },
+        'il-rockchip': { ax: '57.5', ay: '52.5' },
+        'il-cams': { ax: '52.8', ay: '85.5' },
       };
       const mobilePos = {
-        'il-pcb': { ax: '27', ay: '35' },
+        'il-can': { ax: '28', ay: '31' },
         'il-case': { ax: '27', ay: '54' },
-        'il-rockchip': { ax: '61', ay: '55' },
-        'il-cams': { ax: '59', ay: '84' },
+        'il-cam45': { ax: '10', ay: '78.5' },
+        'il-pcb': { ax: '76', ay: '36.5' },
+        'il-rockchip': { ax: '61', ay: '54' },
+        'il-cams': { ax: '58', ay: '84' },
       };
 
       function applyLabelLayout() {
@@ -3288,6 +3285,10 @@ document.addEventListener('DOMContentLoaded', function(){
           if (!m) return;
           el.dataset.ax = m.ax;
           el.dataset.ay = m.ay;
+          if (CONTACT[el.id]) {
+            CONTACT[el.id].ax = parseFloat(m.ax);
+            CONTACT[el.id].ay = parseFloat(m.ay);
+          }
         });
         if (poster) {
           const src = mobileMq.matches ? media.dataset.mobilePoster : media.dataset.desktopPoster;
