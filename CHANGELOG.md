@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `ka2` Inside phone: Aluminium Unibody tagtext wraps to 2 lines (Aluminium / Unibody).
 - `ka2` Inside tablet: 45 FOV elbow shifted down 2% (tip + textY together; vertical length unchanged).
 - `ka2` Inside tablet: PCB/Rockchip/185 FOV +1% right; Aluminium −2% Y; 45 FOV −4% Y; 45/185 FOV 2-line wrap.
 - `ka2` Inside phone: PCB + Rockchip tags 5% left (tips shift with text; leader length unchanged).

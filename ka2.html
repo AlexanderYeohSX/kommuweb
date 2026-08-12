@@ -1429,6 +1429,11 @@ stylesheet: products
         max-width: 4.4rem;
       }
 
+      /* Aluminium Unibody: 2 lines on phone */
+      #il-case .inside-label-sub {
+        display: block;
+      }
+
       /* 185 FOV: exactly 2 lines — Automotive Grade / 185 FOV Camera */
       #il-cams {
         max-width: none;
@@ -2338,7 +2343,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     data-from="0.58" data-ax="36.5" data-ay="33.5">CAN Microcontroller</span>
               <span class="inside-label is-left" id="il-case"
                     style="left:16%; top:56%;"
-                    data-from="0.58" data-ax="33.5" data-ay="56.5">Aluminium Unibody</span>
+                    data-from="0.58" data-ax="33.5" data-ay="56.5">Aluminium<span class="inside-label-sub">Unibody</span></span>
               <span class="inside-label is-left" id="il-cam45"
                     style="left:12%; top:80.5%;"
                     data-from="0.58" data-ax="18" data-ay="80.5">Automotive Grade<span class="inside-label-sub">45 FOV Camera</span></span>
