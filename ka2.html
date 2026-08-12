@@ -1358,23 +1358,85 @@ stylesheet: products
         height: calc(var(--vh, 1vh) * 300);
         min-height: calc(var(--vh, 1vh) * 300);
         margin-top: 3rem;
+        padding-left: 0.55rem !important;
+        padding-right: 0.55rem !important;
       }
 
       .inside-sticky {
-        padding: 1rem 0.85rem 1.15rem;
+        /* Clear the floating KommuAssist 2 / View pricing bar */
+        padding: calc(env(safe-area-inset-top, 0px) + 5.15rem) 0.35rem 0.7rem;
+        overflow: visible;
+      }
+
+      .inside-header {
+        max-width: 100%;
+        padding: 0 0.25rem;
+      }
+
+      .inside-header .section-eyebrow,
+      .inside-header .h3.section-eyebrow {
+        font-size: 0.72rem !important;
+        line-height: 1.2 !important;
+        margin-bottom: 0.1rem !important;
+      }
+
+      .inside-header h2,
+      .inside-header h2.h1,
+      .inside-header h2.section-title {
+        font-size: clamp(1.28rem, 5.6vw, 1.55rem) !important;
+        line-height: 1.12 !important;
+        margin-bottom: 0.28rem !important;
+      }
+
+      .inside-header p,
+      .inside-header p.h4,
+      .inside-header p .h4 {
+        font-size: 0.7rem !important;
+        line-height: 1.32 !important;
+        margin-bottom: 0.3rem !important;
+        white-space: normal !important;
+        max-width: 100%;
+      }
+
+      .inside-stage {
+        overflow: visible;
+        width: 100%;
       }
 
       .inside-media {
-        width: min(100%, 520px, calc((100dvh - 10rem) * var(--inside-ar)));
-        max-height: min(62dvh, 560px);
-        /* aspect-ratio comes from --inside-ar / JS (matches active frame file) */
+        width: min(58%, 360px);
+        max-width: 58%;
+        max-height: min(56dvh, 480px);
+        overflow: visible;
+      }
+
+      .inside-overlay,
+      .inside-lines {
+        overflow: visible;
       }
 
       .inside-label {
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         white-space: normal;
-        max-width: 5.75rem;
+        max-width: 6.4rem;
         line-height: 1.15;
+        word-break: normal;
+        overflow-wrap: break-word;
+        hyphens: none;
+      }
+
+      #il-rockchip {
+        max-width: 4.4rem;
+      }
+
+      /* 185 FOV: exactly 2 lines — Automotive Grade / 185 FOV Camera */
+      #il-cams {
+        max-width: none;
+        white-space: nowrap;
+      }
+      #il-cams .inside-label-sub {
+        display: block;
+        white-space: nowrap;
       }
 
       .inside-lines line {
@@ -1382,7 +1444,45 @@ stylesheet: products
       }
 
       .inside-scroll-cue {
-        height: 1.75rem;
+        height: 1.25rem;
+        bottom: 0.35rem;
+      }
+    }
+
+    /* iPad / small tablet: wrap tags; longer gutters for leaders */
+    @media (max-width: 1100px) and (min-width: 769px) {
+      .inside-label {
+        white-space: normal;
+        max-width: 7.25rem;
+        line-height: 1.18;
+      }
+
+      #il-rockchip {
+        max-width: 4.4rem;
+      }
+
+      /* 45 / 185 FOV: 2 lines — Automotive Grade / N FOV Camera */
+      #il-cam45,
+      #il-cams {
+        max-width: none;
+        white-space: nowrap;
+      }
+      #il-cam45 .inside-label-sub,
+      #il-cams .inside-label-sub {
+        display: block;
+        white-space: nowrap;
+      }
+
+      .inside-media {
+        width: min(72%, 640px);
+        max-width: 72%;
+        max-height: min(62dvh, 560px);
+        overflow: visible;
+      }
+
+      .inside-overlay,
+      .inside-lines {
+        overflow: visible;
       }
     }
 
@@ -1781,6 +1881,7 @@ document.addEventListener('DOMContentLoaded', function(){
         el.closest('.frame-section') ||
         el.closest('.perception-tabs-section') ||
         el.closest('.safety-tab') ||
+        el.closest('.inside-section') ||
         el.closest('.fixed') ||
         el.closest('.footer') ||
         el.closest('.summary-section')
@@ -3161,8 +3262,16 @@ document.addEventListener('DOMContentLoaded', function(){
         const sr = stage.getBoundingClientRect();
         if (sr.width < 2 || sr.height < 2) return;
 
-        const maxW = Math.min(sr.width * 0.96, activeMobile ? 520 : 920);
-        const maxH = Math.min(sr.height * 0.96, activeMobile ? 560 : 820);
+        const band = window.innerWidth <= 768 ? 'phone' : (window.innerWidth <= 1100 ? 'tablet' : 'desktop');
+        // Phone ~58% leaves gutters for tagboxes (red mockup); tablet ~72% for longer leaders
+        const maxW = Math.min(
+          sr.width * (band === 'phone' ? 0.58 : band === 'tablet' ? 0.72 : 0.98),
+          band === 'phone' ? 360 : band === 'tablet' ? 640 : 920
+        );
+        const maxH = Math.min(
+          sr.height * (band === 'phone' ? 0.94 : 0.98),
+          band === 'phone' ? 480 : band === 'tablet' ? 560 : 820
+        );
         let w = maxW;
         let h = w / ar;
         if (h > maxH) {
@@ -3192,7 +3301,7 @@ document.addEventListener('DOMContentLoaded', function(){
       const TEXT_GAP_PX = 14; // default gap between line end and text
       const TIP_CLEAR_PX = 18; // default gap so tip/dot never touches the part
       // Contact points; optional lineLen / textGapPx / tipClearPx overrides
-      const CONTACT = {
+      const CONTACT_DESKTOP = {
         'il-can': { ax: 36.5, ay: 33.5, lineLen: 14, tipClearPx: 12, textGapPx: 8, textNudgeYPct: -0.45 },
         'il-case': { ax: 33.5, ay: 56.5, lineLen: 11, tipClearPx: 10, textGapPx: 8 },
         'il-cam45': { ax: 18.0, ay: 80.5, lineLen: 11, tipClearPx: 14, textGapPx: 8 },
@@ -3200,11 +3309,44 @@ document.addEventListener('DOMContentLoaded', function(){
         'il-rockchip': { ax: 57.5, ay: 52.5, lineLen: 24, tipClearPx: 14, textGapPx: 12 },
         'il-cams': { ax: 52.8, ay: 85.5, lineLen: 18, textGapPx: 0, textOffsetPct: 2 },
       };
+      // Pinned from red mockup — tips/boxes measured vs m_60 (phone) / d_60 (tablet) media box
+      const CONTACT_PHONE = {
+        // textGapPx 8 (CAN). textX + ax shift together so leader length stays fixed.
+        'il-can':      { ax: 22.9, ay: 34.5, textX: 4.4, textY: 35.0, textGapPx: 8, side: 'left' },
+        'il-case':     { ax: 25.1, ay: 54.9, textX: -8.0, textY: 55.1, textGapPx: 8, side: 'left' },
+        'il-cam45':    { ax: 18.1, ay: 86.5, textX: 36.7, textY: 104.0, textGapPx: 8, elbow: 'down-right', side: 'right' },
+        'il-pcb':      { ax: 72.9, ay: 36.5, textX: 107.0, textY: 36.2, textGapPx: 8, side: 'right' },
+        'il-rockchip': { ax: 62.9, ay: 53.3, textX: 91.7, textY: 53.1, textGapPx: 8, side: 'right' },
+        'il-cams':     { ax: 55.9, ay: 87.2, textX: 80.0, textY: 87.8, textGapPx: 8, side: 'right' },
+      };
+      const CONTACT_TABLET = {
+        'il-can':      { ax: 30.5, ay: 34.8, textX: 11.7, textY: 34.8, side: 'left' },
+        'il-case':     { ax: 32.1, ay: 54.4, textX: 10.6, textY: 54.4, side: 'left' },
+        'il-cam45':    { ax: 21.9, ay: 86.5, textX: 27.6, textY: 99.9, elbow: 'down-right', side: 'right' },
+        'il-pcb':      { ax: 67.5, ay: 37.6, textX: 83.2, textY: 37.6, side: 'right' },
+        'il-rockchip': { ax: 60.1, ay: 52.8, textX: 85.5, textY: 52.8, side: 'right' },
+        'il-cams':     { ax: 55.4, ay: 85.1, textX: 73.0, textY: 85.1, side: 'right' },
+      };
+      const CONTACT = {};
+      labels.forEach(el => {
+        el.dataset.sideDefault = el.classList.contains('is-left') ? 'left' : 'right';
+        CONTACT[el.id] = { ...(CONTACT_DESKTOP[el.id] || {}) };
+      });
+      const EDGE_GAP_PX = 16;
+      const MIN_LINE_PX = 8;
+
+      function layoutBand() {
+        const w = window.innerWidth || 1200;
+        if (w <= 768) return 'phone';
+        if (w <= 1100) return 'tablet';
+        return 'desktop';
+      }
 
       function syncLines() {
         if (!linesSvg) return;
         const mr = media.getBoundingClientRect();
         if (mr.width < 2 || mr.height < 2) return;
+        const vw = window.innerWidth || document.documentElement.clientWidth;
 
         while (linesSvg.firstChild) linesSvg.removeChild(linesSvg.firstChild);
         const ns = 'http://www.w3.org/2000/svg';
@@ -3216,38 +3358,130 @@ document.addEventListener('DOMContentLoaded', function(){
           const ax = c.ax != null ? c.ax : parseFloat(label.dataset.ax);
           const ay = c.ay != null ? c.ay : parseFloat(label.dataset.ay);
           if (Number.isNaN(ax) || Number.isNaN(ay)) return;
-          const isLeft = label.classList.contains('is-left');
+          const isLeft = c.side ? c.side === 'left' : label.classList.contains('is-left');
+          label.classList.toggle('is-left', isLeft);
+          label.classList.toggle('is-right', !isLeft);
 
-          const lineLen = c.lineLen != null ? c.lineLen : LINE_LEN;
-          const textGap = ((c.textGapPx != null ? c.textGapPx : TEXT_GAP_PX) / mr.width) * 100;
+          const addLine = (xa, ya, xb, yb) => {
+            const line = document.createElementNS(ns, 'line');
+            line.setAttribute('x1', xa.toFixed(2) + '%');
+            line.setAttribute('y1', ya.toFixed(2) + '%');
+            line.setAttribute('x2', xb.toFixed(2) + '%');
+            line.setAttribute('y2', yb.toFixed(2) + '%');
+            linesSvg.appendChild(line);
+          };
+          const addDot = (cx, cy) => {
+            const dot = document.createElementNS(ns, 'circle');
+            dot.setAttribute('cx', cx.toFixed(2) + '%');
+            dot.setAttribute('cy', cy.toFixed(2) + '%');
+            dot.setAttribute('r', DOT_R.toFixed(2));
+            linesSvg.appendChild(dot);
+          };
+
+          // Phone / tablet pinned layout (from red mockup)
+          if (c.textX != null) {
+            const textX = c.textX;
+            const textY = c.textY != null ? c.textY : ay;
+            // Gap between tagtext edge and tagline end — default 8 matches CAN
+            const pinGapPx = c.textGapPx != null ? c.textGapPx : 8;
+            const gap = (pinGapPx / mr.width) * 100;
+            const lineToTextX = isLeft ? textX + gap : textX - gap;
+            label.dataset.ax = String(ax);
+            label.dataset.ay = String(ay);
+            label.style.left = textX.toFixed(2) + '%';
+
+            if (c.elbow === 'down-left') {
+              // tip → down → left → text (gap before text)
+              label.classList.add('is-left');
+              label.classList.remove('is-right');
+              label.style.transform = 'translate(-100%, -50%)';
+              label.style.top = textY.toFixed(2) + '%';
+              addLine(ax, ay, ax, textY);
+              addLine(ax, textY, textX + gap, textY);
+              addDot(ax, ay);
+              return;
+            }
+            if (c.elbow === 'right-down') {
+              // tip → right → down → text (gap before text)
+              label.classList.add('is-right');
+              label.classList.remove('is-left');
+              label.style.transform = 'translate(0, -50%)';
+              label.style.top = textY.toFixed(2) + '%';
+              const elbowX = textX - gap;
+              addLine(ax, ay, elbowX, ay);
+              addLine(elbowX, ay, elbowX, textY);
+              addDot(ax, ay);
+              return;
+            }
+            if (c.elbow === 'down-right') {
+              label.classList.add('is-right');
+              label.classList.remove('is-left');
+              label.style.transform = 'translate(0, -50%)';
+              label.style.top = textY.toFixed(2) + '%';
+              addLine(ax, ay, ax, textY);
+              addLine(ax, textY, textX - gap, textY);
+              addDot(ax, ay);
+              return;
+            }
+
+            // Straight horizontal
+            if (isLeft) {
+              label.style.transform = 'translate(-100%, -50%)';
+              label.style.top = ay.toFixed(2) + '%';
+              addLine(lineToTextX, ay, ax, ay);
+            } else {
+              label.style.transform = 'translate(0, -50%)';
+              label.style.top = ay.toFixed(2) + '%';
+              addLine(ax, ay, lineToTextX, ay);
+            }
+            addDot(ax, ay);
+            return;
+          }
+
+          // Desktop (and any non-pinned) path
+          const preferredLenPct = c.lineLen != null ? c.lineLen : LINE_LEN;
+          const textGapPx = c.textGapPx != null ? c.textGapPx : TEXT_GAP_PX;
+          const textGap = (textGapPx / mr.width) * 100;
           const textOffset = c.textOffsetPct != null ? c.textOffsetPct : 0;
           const textNudgeY = c.textNudgeYPct != null ? c.textNudgeYPct : 0;
           const tipClear = ((c.tipClearPx != null ? c.tipClearPx : TIP_CLEAR_PX) / mr.width) * 100;
 
-          // Tip stops short of the component; leader toward text; text beyond line + gap
           const x2 = isLeft ? ax - tipClear : ax + tipClear;
           const y2 = ay;
-          const x1 = isLeft ? x2 - lineLen : x2 + lineLen;
           const y1 = ay;
-          const textEdge = isLeft ? x1 - textGap - textOffset : x1 + textGap + textOffset;
+          const tipX = mr.left + (x2 / 100) * mr.width;
+          const lw = Math.max(1, label.offsetWidth);
+          const roomPx = isLeft
+            ? (tipX - EDGE_GAP_PX) - lw - textGapPx
+            : (vw - EDGE_GAP_PX) - (tipX + textGapPx) - lw;
+          const preferredLenPx = (preferredLenPct / 100) * mr.width;
+          const lineLenPx = clamp(roomPx, MIN_LINE_PX, preferredLenPx);
+          let lineLen = (lineLenPx / mr.width) * 100;
 
+          let x1 = isLeft ? x2 - lineLen : x2 + lineLen;
+          let textEdge = isLeft ? x1 - textGap - textOffset : x1 + textGap + textOffset;
+
+          label.style.transform = '';
           label.style.left = textEdge.toFixed(2) + '%';
           label.style.top = (y1 + textNudgeY).toFixed(2) + '%';
+
+          const lr = label.getBoundingClientRect();
+          if (lr.width > 1) {
+            if (isLeft && lr.left < EDGE_GAP_PX) {
+              textEdge += ((EDGE_GAP_PX - lr.left) / mr.width) * 100;
+            } else if (!isLeft && lr.right > vw - EDGE_GAP_PX) {
+              textEdge -= ((lr.right - (vw - EDGE_GAP_PX)) / mr.width) * 100;
+            }
+            label.style.left = textEdge.toFixed(2) + '%';
+            x1 = isLeft ? textEdge + textGap : textEdge - textGap;
+            if (isLeft && x1 > x2) x1 = x2 - (MIN_LINE_PX / mr.width) * 100;
+            if (!isLeft && x1 < x2) x1 = x2 + (MIN_LINE_PX / mr.width) * 100;
+          }
+
           label.dataset.ax = String(ax);
           label.dataset.ay = String(ay);
-
-          const line = document.createElementNS(ns, 'line');
-          line.setAttribute('x1', x1.toFixed(2) + '%');
-          line.setAttribute('y1', y1.toFixed(2) + '%');
-          line.setAttribute('x2', x2.toFixed(2) + '%');
-          line.setAttribute('y2', y2.toFixed(2) + '%');
-          linesSvg.appendChild(line);
-
-          const dot = document.createElementNS(ns, 'circle');
-          dot.setAttribute('cx', x2.toFixed(2) + '%');
-          dot.setAttribute('cy', y2.toFixed(2) + '%');
-          dot.setAttribute('r', DOT_R.toFixed(2));
-          linesSvg.appendChild(dot);
+          addLine(x1, y1, x2, y2);
+          addDot(x2, y2);
         });
       }
 
@@ -3260,40 +3494,41 @@ document.addEventListener('DOMContentLoaded', function(){
         syncLines();
       }
 
-      // Mobile crop (m_* frames) — contact points shifted for portrait framing
-      const desktopPos = {
-        'il-can': { ax: '36.5', ay: '33.5' },
-        'il-case': { ax: '33.5', ay: '56.5' },
-        'il-cam45': { ax: '18', ay: '80.5' },
-        'il-pcb': { ax: '62', ay: '39.5' },
-        'il-rockchip': { ax: '57.5', ay: '52.5' },
-        'il-cams': { ax: '52.8', ay: '85.5' },
-      };
-      const mobilePos = {
-        'il-can': { ax: '28', ay: '31' },
-        'il-case': { ax: '27', ay: '54' },
-        'il-cam45': { ax: '10', ay: '78.5' },
-        'il-pcb': { ax: '76', ay: '36.5' },
-        'il-rockchip': { ax: '61', ay: '54' },
-        'il-cams': { ax: '58', ay: '84' },
-      };
-
       function applyLabelLayout() {
-        const map = mobileMq.matches ? mobilePos : desktopPos;
+        const band = layoutBand();
+        const map = band === 'phone' ? CONTACT_PHONE
+          : band === 'tablet' ? CONTACT_TABLET
+          : CONTACT_DESKTOP;
         labels.forEach(el => {
-          const m = map[el.id];
-          if (!m) return;
-          el.dataset.ax = m.ax;
-          el.dataset.ay = m.ay;
-          if (CONTACT[el.id]) {
-            CONTACT[el.id].ax = parseFloat(m.ax);
-            CONTACT[el.id].ay = parseFloat(m.ay);
+          const desk = CONTACT_DESKTOP[el.id] || {};
+          const src = map[el.id] || desk;
+          CONTACT[el.id] = band === 'desktop' ? { ...desk } : { ...(map[el.id] || desk) };
+          // Desktop must not keep phone textX pins
+          if (band === 'desktop') {
+            delete CONTACT[el.id].textX;
+            delete CONTACT[el.id].textY;
+            delete CONTACT[el.id].elbow;
+            delete CONTACT[el.id].side;
           }
+          // Phone/tablet: force CAN gap; strip desktop gap/len leftovers
+          if (band !== 'desktop') {
+            if (CONTACT[el.id].textX != null && CONTACT[el.id].textGapPx == null) {
+              CONTACT[el.id].textGapPx = 8;
+            }
+          }
+          el.dataset.ax = String(CONTACT[el.id].ax);
+          el.dataset.ay = String(CONTACT[el.id].ay);
+          const side = CONTACT[el.id].side || el.dataset.sideDefault || 'right';
+          el.classList.toggle('is-left', side === 'left');
+          el.classList.toggle('is-right', side !== 'left');
         });
         if (poster) {
-          const src = mobileMq.matches ? media.dataset.mobilePoster : media.dataset.desktopPoster;
+          const useMobileFrames = band !== 'desktop' && (mobileMq.matches || activeMobile || band === 'phone');
+          const src = useMobileFrames ? media.dataset.mobilePoster : media.dataset.desktopPoster;
           if (src) poster.src = src;
         }
+        // Phone crop frames under 768; tablet/desktop use desktop frames for aspect match
+        activeMobile = band === 'phone';
         fitMediaToStage();
         syncLines();
       }
@@ -3382,6 +3617,18 @@ document.addEventListener('DOMContentLoaded', function(){
       });
 
       window.insideProgress = () => sectionProgress(section);
+
+      if (location.hash === '#inside-open') {
+        const jumpOpen = () => {
+          const top = section.offsetTop;
+          const h = section.offsetHeight;
+          const vh = window.innerHeight || 800;
+          window.scrollTo(0, top + 0.72 * Math.max(1, h - vh));
+          startLoop();
+        };
+        window.addEventListener('load', jumpOpen);
+        setTimeout(jumpOpen, 250);
+      }
     })();
 
     // 🔌 Ports & Connectivity label animations

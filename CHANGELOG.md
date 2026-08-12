@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- `ka2` Inside tablet: 45 FOV elbow shifted down 2% (tip + textY together; vertical length unchanged).
+- `ka2` Inside tablet: PCB/Rockchip/185 FOV +1% right; Aluminium −2% Y; 45 FOV −4% Y; 45/185 FOV 2-line wrap.
+- `ka2` Inside phone: PCB + Rockchip tags 5% left (tips shift with text; leader length unchanged).
+- `ka2` Inside phone: CAN + Aluminium tags 6% left; PCB + Rockchip 6% right (tips shift with text so leader length unchanged).
+- `ka2` Inside phone: redo — gaps locked to CAN 8px (no desktop merge); Aluminium further left; PCB further right (visible nudges).
+- `ka2` Inside phone: all tagline↔tagtext gaps match CAN (8px); PCB tag nudged right; Aluminium tag nudged left.
+- `ka2` Inside phone: 185 FOV tagline↔tagtext gap reduced (22→12px).
+- `ka2` Inside phone: Aluminium tag moved left; 185 FOV larger tagline↔tagtext gap; 45 FOV longer vertical elbow (text follows down).
+- `ka2` Inside phone callouts: 185 FOV tagtext forced to 2 lines (Automotive Grade / 185 FOV Camera).
+- `ka2` Inside phone callouts: larger gap between tagtext and tagline; 185 FOV wraps to 2 lines (like 45 FOV).
+- `ka2` Inside callouts: phone + tablet tips/tagboxes re-measured from red mockup against m_60/d_60 (45 FOV down-right under lens; 185 FOV horizontal on both; phone media ~58% gutters).
 - `ka2` Inside explode sequence re-exported from latest Blender PCB traces (Wave 2.15 / Trace_Less 0.30); cache-bust `?v=9`.
 - `ka2` Inside caption rewritten so it doesn’t mirror the Ports “Equipped with…” structure.
 - `ka2` Inside caption now matches Ports voice (8nm 8-core / Mali-G610 / 4GB / 128GB / Ubuntu 22.04 / 3× CAN FD); eyebrow and title use the same size and colour as Ports.
