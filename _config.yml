@@ -35,3 +35,4 @@ social:
   - title: facebook
     url: https://www.facebook.com/groups/kommu.official
 
+newsletter_api_url: "https://YOUR-FUNNEL-HOST/newsletter/subscribe"
