@@ -95,14 +95,26 @@
         })
       });
       const data = await res.json().catch(function () { return {}; });
-      if (!res.ok) {
+      if (!res.ok || data.ok === false) {
         throw new Error(data.error || 'Subscribe failed');
       }
       form.reset();
+      if (data.created === false) {
+        successEl.textContent = 'You’re already subscribed — thanks!';
+      } else {
+        successEl.textContent = 'You’re subscribed — check your inbox soon.';
+      }
       successEl.hidden = false;
     } catch (err) {
       console.error('Newsletter subscribe failed', err);
-      errorEl.textContent = 'Something went wrong. Please try again or email support@kommu.ai.';
+      var msg = (err && err.message) ? String(err.message) : '';
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        errorEl.textContent = 'Could not reach the subscribe service. Hard-refresh this page (Cmd+Shift+R) and try again.';
+      } else if (msg && msg !== 'Subscribe failed') {
+        errorEl.textContent = msg;
+      } else {
+        errorEl.textContent = 'Something went wrong. Please try again or email support@kommu.ai.';
+      }
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
