@@ -47,13 +47,49 @@ Defined in [`_data/newsletter_sequence.yaml`](../_data/newsletter_sequence.yaml)
 ## 3. Frontend (kommuweb)
 
 - [`_includes/newsletter_signup.html`](../_includes/newsletter_signup.html) on `index.html`
-- API URL from [`_config.yml`](../_config.yml) → `newsletter_api_url` (Funnel URL after Athena install)
+- API URL from [`_config.yml`](../_config.yml) → `newsletter_api_url`
+
+**Do not point the browser at `*.ts.net` Funnel URLs** — many networks (office Wi‑Fi, some ISPs, DNS filters) block Tailscale domains. The form should call **`https://aws.kommu.ai/newsletter/subscribe`** or a **Google Apps Script** web app instead.
 
 ```yaml
-newsletter_api_url: "https://athena.YOUR-TAILNET.ts.net/newsletter/subscribe"
+newsletter_api_url: "https://aws.kommu.ai/newsletter/subscribe"
 ```
 
-## 4. Athena — subscribe API + Funnel
+### Option A — API Gateway proxy to Athena (recommended with `aws.kommu.ai`)
+
+Browsers → `aws.kommu.ai` → API Gateway HTTP proxy → Athena Funnel → `subscribe_api.py` → KA Inventory.
+
+In **AWS Console** → API Gateway → **Kommu Gateway** (`ifhdr5efvk`):
+
+1. **Routes** → create `POST /newsletter/subscribe`
+2. Integration: **HTTP proxy** → `https://athena.tail3f9a13.ts.net/newsletter/subscribe`
+3. Ensure **CORS** allows `POST` + `Content-Type` from `kommu.ai`, `www.kommu.ai`, `alexanderyeohsx.github.io`
+4. Deploy the API stage
+
+Test:
+
+```bash
+curl -X POST https://aws.kommu.ai/newsletter/subscribe \
+  -H 'Content-Type: application/json' \
+  -H 'Origin: https://kommu.ai' \
+  -d '{"email":"you@example.com","name":"Test","source":"homepage"}'
+```
+
+Reference Node proxy: [`server/src/routes/newsletter.js`](../server/src/routes/newsletter.js) (for local dev or future Lambda deploy).
+
+### Option B — Google Apps Script (no AWS, no Tailscale in browser)
+
+Same pattern as [installers](installers-google-sheet.md). Paste [`docs/scripts/newsletter-subscribe-api.gs`](scripts/newsletter-subscribe-api.gs) into **KA Inventory** → Extensions → Apps Script → Deploy → Web app (Anyone).
+
+Set `_config.yml`:
+
+```yaml
+newsletter_api_url: "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
+```
+
+Athena drip/sync timers are unchanged; only the homepage subscribe path uses Apps Script.
+
+## 4. Athena — subscribe API + Funnel (server-side)
 
 Location: [`tools/newsletter-runner/`](../tools/newsletter-runner/)
 
@@ -126,9 +162,13 @@ Logs: `logs/newsletter-drip.log`, `logs/subscribe-api.log`
 
 Set `status=unsubscribed` in the sheet when users reply or email support@kommu.ai.
 
-## 8. Optional — aws.kommu.ai Lambda
+## 8. Troubleshooting
 
-If you prefer Lambda instead of Funnel, leave `newsletter_api_url` empty and implement [backend-api.md](backend-api.md#post-newslettersubscribe) on **CurlecGateway**.
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| “Could not reach the subscribe service” | Browser/network blocks `*.ts.net` | Use `aws.kommu.ai` proxy (§3 Option A) or Apps Script (§3 Option B) |
+| `404` on `aws.kommu.ai/newsletter/subscribe` | API Gateway route not added | §3 Option A |
+| Row missing in sheet | Service account / Apps Script permissions | Share KA Inventory with service account or run Apps Script as sheet owner |
 
 ## 9. Privacy
 

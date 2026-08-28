@@ -85,9 +85,12 @@
     submitBtn.textContent = 'Subscribing…';
 
     try {
+      const isAppsScript = SUBSCRIBE_URL.indexOf('script.google.com') !== -1;
       const res = await fetch(SUBSCRIBE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: isAppsScript
+          ? { 'Content-Type': 'text/plain;charset=utf-8' }
+          : { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email,
           name: name || '',
@@ -109,7 +112,7 @@
       console.error('Newsletter subscribe failed', err);
       var msg = (err && err.message) ? String(err.message) : '';
       if (/failed to fetch|networkerror|load failed/i.test(msg)) {
-        errorEl.textContent = 'Could not reach the subscribe service. Hard-refresh this page (Cmd+Shift+R) and try again.';
+        errorEl.textContent = 'Could not reach the subscribe service. If you are on a restricted network, try another connection or contact support@kommu.ai.';
       } else if (msg && msg !== 'Subscribe failed') {
         errorEl.textContent = msg;
       } else {

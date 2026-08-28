@@ -1,11 +1,15 @@
-require('express');
+const express = require('express');
 
 const router = express.Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const UPSTREAM_URL =
+  process.env.NEWSLETTER_UPSTREAM_URL ||
+  'https://athena.tail3f9a13.ts.net/newsletter/subscribe';
 
 /**
- * Reference handler for POST /newsletter/subscribe.
- * Production: Go Lambda (CurlecGateway) writes to Google Sheet tab "Newsletter".
+ * POST /newsletter/subscribe
+ * Proxies to Athena Funnel so browsers only talk to aws.kommu.ai (some networks block *.ts.net).
+ * Production: deploy this handler on CurlecGateway Lambda or add API Gateway HTTP proxy route.
  */
 router.post('/subscribe', async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
@@ -21,14 +25,20 @@ router.post('/subscribe', async (req, res) => {
     return res.status(400).json({ error: 'Invalid source' });
   }
 
-  // Production upserts: email, name, source, subscribed_at, sequence_step=0, status=active
-  console.info('Newsletter subscribe (reference)', { email, name, source });
-
-  return res.json({
-    ok: true,
-    email,
-    message: 'Subscribed. Reference server does not write to Google Sheets — deploy Lambda handler.'
-  });
+  try {
+    const upstream = await fetch(UPSTREAM_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name, source }),
+    });
+    const data = await upstream.json().catch(() => ({}));
+    return res.status(upstream.status).json(data.ok === false ? data : data);
+  } catch (err) {
+    console.error('Newsletter upstream proxy failed', err);
+    return res.status(502).json({
+      error: 'Subscribe service unavailable. Try again shortly.',
+    });
+  }
 });
 
 module.exports = router;
