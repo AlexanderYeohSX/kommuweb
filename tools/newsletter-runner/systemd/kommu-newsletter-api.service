@@ -1,0 +1,18 @@
+[Unit]
+Description=Kommu newsletter subscribe API (Tailscale Funnel backend)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=__PROJECT_ROOT__
+EnvironmentFile=__PROJECT_ROOT__/.env
+Environment=TZ=Asia/Singapore
+ExecStart=__VENV_PYTHON__ __PROJECT_ROOT__/subscribe_api.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:__PROJECT_ROOT__/logs/subscribe-api.log
+StandardError=append:__PROJECT_ROOT__/logs/subscribe-api.log
+
+[Install]
+WantedBy=default.target

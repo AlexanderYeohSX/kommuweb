@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly Kommu newsletter drip emails
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=kommu-newsletter-drip.service
+
+[Install]
+WantedBy=timers.target

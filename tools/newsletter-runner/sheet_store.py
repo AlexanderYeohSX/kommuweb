@@ -1,0 +1,120 @@
+"""Google Sheet helpers for KA Inventory → Newsletter tab."""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+MYT = ZoneInfo("Asia/Kuala_Lumpur")
+MYT_DATETIME_FMT = "%d/%m/%Y %H:%M:%S"
+
+try:
+    import gspread
+    from google.oauth2.service_account import Credentials
+except ImportError as exc:
+    raise SystemExit("pip install -r requirements.txt") from exc
+
+ROOT = Path(__file__).resolve().parent
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive.readonly",
+]
+
+HEADERS = [
+    "email",
+    "name",
+    "source",
+    "subscribed_at",
+    "sequence_step",
+    "last_sent_at",
+    "status",
+    "next_send_at",
+]
+
+EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+ALLOWED_SOURCES = frozenset({"homepage", "checkout", "import"})
+
+
+def load_dotenv() -> None:
+    env_path = ROOT / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+def get_credentials():
+    load_dotenv()
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "")
+    if not creds_json:
+        raise RuntimeError("GOOGLE_CREDENTIALS_JSON is not set")
+    if creds_json.startswith("{"):
+        info = json.loads(creds_json)
+    else:
+        info = json.loads(Path(creds_json).read_text())
+    return Credentials.from_service_account_info(info, scopes=SCOPES)
+
+
+def get_newsletter_sheet():
+    load_dotenv()
+    sheet_id = os.environ.get("GOOGLE_SPREADSHEET_ID", "")
+    if not sheet_id:
+        raise RuntimeError("GOOGLE_SPREADSHEET_ID is not set")
+    tab = os.environ.get("NEWSLETTER_SHEET_TAB", "Newsletter")
+    gc = gspread.authorize(get_credentials())
+    return gc.open_by_key(sheet_id).worksheet(tab)
+
+
+def subscribed_at_now() -> str:
+    """Malaysia time (GMT+8) for new Newsletter rows."""
+    return datetime.now(MYT).strftime(MYT_DATETIME_FMT)
+
+
+def normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+
+def validate_subscribe_payload(body: dict) -> tuple[str, str, str]:
+    email = normalize_email(str(body.get("email") or ""))
+    if not EMAIL_RE.match(email):
+        raise ValueError("Invalid email address")
+    name = str(body.get("name") or "").strip()
+    source = str(body.get("source") or "homepage").strip() or "homepage"
+    if source not in ALLOWED_SOURCES:
+        raise ValueError("Invalid source")
+    return email, name, source
+
+
+def upsert_subscriber(email: str, name: str = "", source: str = "homepage") -> dict:
+    sheet = get_newsletter_sheet()
+    rows = sheet.get_all_values()
+    col = {h: i + 1 for i, h in enumerate(HEADERS)}
+
+    for idx, row in enumerate(rows[1:], start=2):
+        existing = (row[0] if row else "").strip().lower()
+        if existing != email:
+            continue
+        status = (row[6] if len(row) > 6 else "active").strip().lower()
+        if name:
+            sheet.update_cell(idx, col["name"], name)
+        return {
+            "ok": True,
+            "email": email,
+            "created": False,
+            "status": status or "active",
+        }
+
+    sheet.append_row(
+        [email, name, source, subscribed_at_now(), "0", "", "active", ""],
+        value_input_option="USER_ENTERED",
+    )
+    return {"ok": True, "email": email, "created": True, "status": "active"}

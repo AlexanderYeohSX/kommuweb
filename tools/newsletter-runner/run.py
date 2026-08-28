@@ -20,6 +20,10 @@ from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+MYT = ZoneInfo("Asia/Kuala_Lumpur")
+MYT_DATETIME_FMT = "%d/%m/%Y %H:%M:%S"
 
 try:
     import gspread
@@ -105,9 +109,10 @@ def parse_dt(value: str | None) -> datetime | None:
     try:
         return datetime.fromisoformat(s)
     except ValueError:
-        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
+        for fmt in (MYT_DATETIME_FMT, "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"):
             try:
-                return datetime.strptime(s, fmt).replace(tzinfo=timezone.utc)
+                tz = MYT if fmt == MYT_DATETIME_FMT else timezone.utc
+                return datetime.strptime(s, fmt).replace(tzinfo=tz)
             except ValueError:
                 continue
     return None
@@ -199,7 +204,7 @@ def main() -> None:
         print(f"Sending step {next_step} ({step['id']}) to {email}")
         send_email(env, email, subject, html, text)
 
-        iso_now = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        iso_now = datetime.now(MYT).strftime(MYT_DATETIME_FMT)
         new_status = "completed" if next_step >= len(sequence) else "active"
         col = {h: i + 1 for i, h in enumerate(HEADERS)}
         sheet.update_cell(idx, col["sequence_step"], str(next_step))

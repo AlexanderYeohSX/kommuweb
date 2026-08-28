@@ -1,0 +1,10 @@
+[Unit]
+Description=Every 30 minutes sync orders to Newsletter tab
+
+[Timer]
+OnCalendar=*:0/30
+Persistent=true
+Unit=kommu-newsletter-sync.service
+
+[Install]
+WantedBy=timers.target

@@ -44,7 +44,11 @@
 
 <script>
 (function () {
-  const API_BASE = 'https://aws.kommu.ai';
+  {% if site.newsletter_api_url and site.newsletter_api_url != "" %}
+  const SUBSCRIBE_URL = {{ site.newsletter_api_url | jsonify }};
+  {% else %}
+  const SUBSCRIBE_URL = 'https://aws.kommu.ai/newsletter/subscribe';
+  {% endif %}
   const form = document.getElementById('newsletterSignupForm');
   if (!form) return;
 
@@ -81,7 +85,7 @@
     submitBtn.textContent = 'Subscribing…';
 
     try {
-      const res = await fetch(API_BASE + '/newsletter/subscribe', {
+      const res = await fetch(SUBSCRIBE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

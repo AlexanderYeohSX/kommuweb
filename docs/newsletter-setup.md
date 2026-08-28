@@ -1,28 +1,31 @@
 # Newsletter signup + automated email chain
 
-Homepage signup, Google Sheet subscriber list (including purchasers), and a self-hosted drip runner on your own machine.
+Homepage signup, **KA Inventory** subscriber list (including purchasers), and drip emails on **Athena** (Tailscale + Funnel).
 
-## Architecture
+## Architecture (Athena)
 
 ```
-┌─────────────────┐     POST /newsletter/subscribe     ┌──────────────────┐
-│  kommu.ai       │ ───────────────────────────────► │ aws.kommu.ai     │
-│  (homepage form)│                                    │ (Lambda)         │
-└─────────────────┘                                    └────────┬─────────┘
-                                                                │ upsert
-┌─────────────────┐     payment.captured webhook              ▼
-│  Checkout       │ ───────────────────────────────► ┌──────────────────┐
-└─────────────────┘                                    │ Google Sheet     │
-                                                       │ tab: Newsletter  │
-┌─────────────────┐     cron (your device)             └────────┬─────────┘
-│ newsletter-     │ ◄──────────────── read / update ────────────┘
-│ runner (SMTP)   │
+┌─────────────────┐   POST /newsletter/subscribe   ┌─────────────────────────────┐
+│  kommu.ai       │ ─────────────────────────────► │ Tailscale Funnel (public)   │
+│  (homepage)     │                                  │        ↓                    │
+└─────────────────┘                                  │ Athena :8787 subscribe_api│
+                                                       └─────────────┬─────────────┘
+                                                                     │ upsert
+┌─────────────────┐   every 30m sync_orders.py                     ▼
+│  Orders tab     │ ─────────────────────────────► ┌─────────────────────────────┐
+│  (KA Inventory) │                                  │ KA Inventory → Newsletter   │
+└─────────────────┘                                  └─────────────┬─────────────┘
+                                                                     │
+┌─────────────────┐   hourly run.py (drip)                           │
+│  Athena SMTP    │ ◄────────────────────────────────────────────────┘
 └─────────────────┘
 ```
 
-## 1. Google Sheet — `Newsletter` tab
+**Optional fallback:** set `newsletter_api_url` empty in `_config.yml` → form posts to `aws.kommu.ai` (requires Lambda).
 
-Create a tab named **Newsletter** in the same spreadsheet used for orders (`GOOGLE_SPREADSHEET_ID`). Row 1 headers (exact order):
+## 1. Google Sheet — KA Inventory → `Newsletter` tab
+
+Row 1 headers (exact order):
 
 | Column | Description |
 |--------|-------------|
@@ -35,107 +38,98 @@ Create a tab named **Newsletter** in the same spreadsheet used for orders (`GOOG
 | `status` | `active`, `completed`, or `unsubscribed` |
 | `next_send_at` | Optional; runner can leave blank |
 
-**Upsert rule:** match on `email`. Never reset `sequence_step` if the row already exists (so a purchaser who signed up on the homepage keeps progress).
-
-Share the spreadsheet with your Google service account email (Editor).
+Share **KA Inventory** with your Google service account (Editor).
 
 ## 2. Email sequence
 
-Defined in [`_data/newsletter_sequence.yaml`](../_data/newsletter_sequence.yaml):
-
-| Step | ID | Delay after previous | Topic |
-|------|-----|----------------------|--------|
-| 1 | `branding` | 0 days (on subscribe) | Welcome + brand |
-| 2 | `product_features` | 2 days | Product features |
-| 3 | `use_cases` | 2 days | Use cases + value |
-| 4 | `product_background` | 3 days | Company / product story |
-| 5 | `hardware_specs` | 3 days | Hardware in the box |
-| 6 | `technical_info` | 4 days | Specs, safety, compatibility |
-
-Edit copy in [`tools/newsletter-runner/templates/`](../tools/newsletter-runner/templates/). Use `{{name}}` for personalization.
+Defined in [`_data/newsletter_sequence.yaml`](../_data/newsletter_sequence.yaml). Edit copy in [`tools/newsletter-runner/templates/`](../tools/newsletter-runner/templates/).
 
 ## 3. Frontend (kommuweb)
 
-- Homepage section: [`_includes/newsletter_signup.html`](../_includes/newsletter_signup.html) (included on `index.html`)
-- Submits `POST https://aws.kommu.ai/newsletter/subscribe` with `{ email, name?, source: "homepage" }`
+- [`_includes/newsletter_signup.html`](../_includes/newsletter_signup.html) on `index.html`
+- API URL from [`_config.yml`](../_config.yml) → `newsletter_api_url` (Funnel URL after Athena install)
 
-## 4. Backend API (aws.kommu.ai)
+```yaml
+newsletter_api_url: "https://athena.YOUR-TAILNET.ts.net/newsletter/subscribe"
+```
 
-See [backend-api.md](backend-api.md#post-newslettersubscribe).
-
-### Lambda implementation checklist
-
-Add to **CurlecGateway** (`cmd_aws/payment/`):
-
-1. **`POST /newsletter/subscribe`**
-   - Validate email
-   - Upsert row in `Newsletter` tab via existing Google Sheets client
-   - If new row: `sequence_step=0`, `status=active`, `subscribed_at=now`, `source` from body
-   - If existing row: update `name` if provided; do **not** decrement step or change `status` if `unsubscribed`
-
-2. **On `payment.captured` / successful checkout**
-   - Upsert purchaser email with `source=checkout`, same rules as above
-   - Purchasers appear in the same list as homepage signups
-
-3. **CORS** — allow `POST /newsletter/subscribe` from `kommu.ai`, `www.kommu.ai`, GitHub Pages staging origin
-
-Reference Node handler: [`server/src/routes/newsletter.js`](../server/src/routes/newsletter.js).
-
-## 5. Self-hosted email runner
+## 4. Athena — subscribe API + Funnel
 
 Location: [`tools/newsletter-runner/`](../tools/newsletter-runner/)
 
-```bash
-cd tools/newsletter-runner
-cp config.example.env .env
-# Edit .env — same GOOGLE_SPREADSHEET_ID + service account as Lambda
-pip install -r requirements.txt
-python run.py
-```
-
-Or use `./run.sh` (creates venv on first run).
-
-### Cron example (hourly)
-
-```cron
-0 * * * * /path/to/kommuweb/tools/newsletter-runner/run.sh >> /var/log/kommu-newsletter.log 2>&1
-```
-
-The runner:
-
-1. Reads rows where `status=active` and `sequence_step < 6`
-2. Checks delay from `subscribed_at` (step 1) or `last_sent_at` (steps 2+)
-3. Sends via SMTP
-4. Updates `sequence_step`, `last_sent_at`, and sets `status=completed` after step 6
-
-### Unsubscribe
-
-Until a dedicated endpoint exists, handle manually: set `status=unsubscribed` in the sheet when users reply "unsubscribe" or email support@kommu.ai.
-
-## 6. Import existing / purchased customers
-
-One-time backfill from your orders sheet or CSV:
-
-1. Export unique emails + names from order history
-2. Run import script (dry-run first):
+### Install on Athena
 
 ```bash
-cd tools/newsletter-runner
-python import_subscribers.py --csv /path/to/customers.csv --source import
+# Sync from Mac (example)
+rsync -az --exclude .venv --exclude logs \
+  tools/newsletter-runner/ kommu@192.168.0.80:/data/kommu/newsletter-runner/
+scp path/to/.env kommu@192.168.0.80:/data/kommu/newsletter-runner/.env
+
+# On Athena
+cd /data/kommu/newsletter-runner
+cp config.example.env .env   # edit: KA Inventory ID, service account, SMTP
+sudo ./install-athena-newsletter.sh install
+sudo ./install-athena-newsletter.sh funnel
 ```
 
-Or paste rows manually with `source=import`, `sequence_step=0`, `status=active`, `subscribed_at=<today UTC>`.
+`install` enables:
 
-Purchasers who should **skip** the drip can be set to `status=completed` and `sequence_step=6`.
+| Unit | Role |
+|------|------|
+| `kommu-newsletter-api.service` | Subscribe API on `127.0.0.1:8787` |
+| `kommu-newsletter-drip.timer` | Hourly drip emails |
+| `kommu-newsletter-sync.timer` | Every 30m: **Orders** tab → **Newsletter** tab |
 
-## 7. Testing
+`funnel` runs:
 
-1. Deploy Lambda `/newsletter/subscribe`
-2. Submit the homepage form → confirm row in Sheet
-3. Set `subscribed_at` to yesterday and run `python run.py` → step 1 sends
-4. Complete a test checkout → confirm purchaser row with `source=checkout`
-5. Verify SMTP / SPF / DKIM on your sending domain
+```bash
+sudo tailscale funnel --bg 8787
+tailscale funnel status   # copy https URL
+```
 
-## 8. Privacy
+Paste that URL (with path `/newsletter/subscribe`) into `_config.yml`, rebuild the site, test the homepage form.
 
-The signup form links to the [Privacy Policy](/privacy/). Marketing consent checkbox is required before submit.
+### API
+
+| Method | Path | Body |
+|--------|------|------|
+| `POST` | `/newsletter/subscribe` | `{ "email", "name?", "source?" }` |
+| `GET` | `/health` | — |
+
+CORS origins: `NEWSLETTER_CORS_ORIGINS` in `.env` (default includes `kommu.ai`, `alexanderyeohsx.github.io`).
+
+### Test
+
+```bash
+sudo ./install-athena-newsletter.sh test-api
+curl -X POST https://YOUR-FUNNEL-HOST/newsletter/subscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"you@example.com","name":"Test","source":"homepage"}'
+```
+
+## 5. Drip emails
+
+Hourly on Athena via `run.py`. Manual test:
+
+```bash
+sudo ./install-athena-newsletter.sh test-drip
+```
+
+Logs: `logs/newsletter-drip.log`, `logs/subscribe-api.log`
+
+## 6. Purchasers + import
+
+- **Automatic:** `sync_orders.py` reads **Orders** tab (`ORDERS_SHEET_TAB`, default `Orders`), upserts with `source=checkout`
+- **One-time CSV:** `python import_subscribers.py --csv customers.csv --source import`
+
+## 7. Unsubscribe
+
+Set `status=unsubscribed` in the sheet when users reply or email support@kommu.ai.
+
+## 8. Optional — aws.kommu.ai Lambda
+
+If you prefer Lambda instead of Funnel, leave `newsletter_api_url` empty and implement [backend-api.md](backend-api.md#post-newslettersubscribe) on **CurlecGateway**.
+
+## 9. Privacy
+
+Signup requires marketing consent + link to [Privacy Policy](/privacy/).

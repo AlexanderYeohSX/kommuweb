@@ -1,0 +1,15 @@
+[Unit]
+Description=Kommu newsletter drip email sender
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=__PROJECT_ROOT__
+EnvironmentFile=__PROJECT_ROOT__/.env
+Environment=TZ=Asia/Singapore
+ExecStart=__VENV_PYTHON__ __PROJECT_ROOT__/run.py
+StandardOutput=append:__PROJECT_ROOT__/logs/newsletter-drip.log
+StandardError=append:__PROJECT_ROOT__/logs/newsletter-drip.log
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Sync checkout orders into Newsletter sheet tab
+
+[Service]
+Type=oneshot
+WorkingDirectory=__PROJECT_ROOT__
+EnvironmentFile=__PROJECT_ROOT__/.env
+Environment=TZ=Asia/Singapore
+ExecStart=__VENV_PYTHON__ __PROJECT_ROOT__/sync_orders.py
+StandardOutput=append:__PROJECT_ROOT__/logs/newsletter-sync.log
+StandardError=append:__PROJECT_ROOT__/logs/newsletter-sync.log
+
+[Install]
+WantedBy=default.target

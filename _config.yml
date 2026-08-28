@@ -27,6 +27,10 @@ permalink: pretty
 # Leave empty for local sample data; set to /exec URL after deploying Apps Script.
 installers_api_url: "https://script.google.com/macros/s/AKfycbwLpJuHrljoy_1SmSxcoIkzAk3aEFJu2TIR9jwTKwvfSI1rKBqYQvsIS157zcMYC7D4/exec"
 
+# Newsletter subscribe API (Athena + Tailscale Funnel). Set after: install-athena-newsletter.sh funnel
+# Example: https://athena.your-tailnet.ts.net/newsletter/subscribe
+newsletter_api_url: "https://athena.tail3f9a13.ts.net/newsletter/subscribe"
+
 social:
   - title: instagram
     url: https://instagram.com/kommuai
