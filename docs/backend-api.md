@@ -99,6 +99,46 @@ Form POST from Razorpay Checkout (`redirect: true`). Verifies signature and redi
 
 Raw JSON body; header `X-Razorpay-Signature` verified with `RAZORPAY_WEBHOOK_SECRET`.
 
+On `payment.captured`, upsert purchaser `email` and `name` into the Google Sheet **Newsletter** tab with `source=checkout` (see [newsletter-setup.md](newsletter-setup.md)).
+
+## POST /newsletter/subscribe
+
+Public endpoint for homepage (and future) newsletter signup. Upserts a row in the **Newsletter** Google Sheet tab.
+
+**Request (JSON):**
+
+```json
+{
+  "email": "user@example.com",
+  "name": "Alex",
+  "source": "homepage"
+}
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `email` | yes | Normalized to lowercase |
+| `name` | no | Stored when provided |
+| `source` | no | `homepage` (default), `checkout`, or `import` |
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "email": "user@example.com"
+}
+```
+
+**Errors:** `400` invalid email or source.
+
+**Upsert behaviour:**
+
+- New email → `sequence_step=0`, `status=active`, `subscribed_at=now`
+- Existing email → update `name` if given; preserve `sequence_step` and `status` (unless `unsubscribed`)
+
+Reference handler: [`server/src/routes/newsletter.js`](../server/src/routes/newsletter.js). Full setup: [newsletter-setup.md](newsletter-setup.md).
+
 ## Deprecated
 
 - `GET /curlec/otp` → 410

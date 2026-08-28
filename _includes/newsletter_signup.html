@@ -1,0 +1,109 @@
+<section id="newsletter-signup" class="flex items-center py-20 px-4">
+  <div class="max-w-3xl mx-auto w-full">
+    <div class="bg-card rounded-2xl py-10 px-8 md:py-12 md:px-14 text-center text-white">
+      <h2 class="h2 font-bold text-white mb-3">Stay in the loop</h2>
+      <p class="h5 text-gray font-normal mb-8 max-w-xl mx-auto">
+        Get a short email series on Kommu — brand story, features, real use cases, and technical details. Unsubscribe anytime.
+      </p>
+      <form id="newsletterSignupForm" class="text-left max-w-md mx-auto" novalidate>
+        <label for="newsletterName" class="block h5 font-bold text-gray mb-1">Name <span class="font-normal text-gray">(optional)</span></label>
+        <input
+          id="newsletterName"
+          type="text"
+          autocomplete="name"
+          class="w-full fillform-black border-1 btn-border-gray px-4 py-2 rounded-checkoutform mb-4 text-white"
+          placeholder="Your name"
+        />
+        <label for="newsletterEmail" class="block h5 font-bold text-gray mb-1">Email</label>
+        <input
+          id="newsletterEmail"
+          type="email"
+          autocomplete="email"
+          required
+          class="w-full fillform-black border-1 btn-border-gray px-4 py-2 rounded-checkoutform mb-2 text-white"
+          placeholder="you@example.com"
+          aria-describedby="newsletterEmailError"
+        />
+        <p id="newsletterEmailError" class="text-red-400 text-sm mb-4" hidden>Please enter a valid email address.</p>
+        <label class="flex items-start gap-2 mb-6 cursor-pointer">
+          <input id="newsletterConsent" type="checkbox" required class="mt-1" />
+          <span class="h6 text-gray font-normal">
+            I agree to receive marketing emails from Kommu. See our
+            <a href="{{ '/privacy' | relative_url }}" class="underline text-white">Privacy Policy</a>.
+          </span>
+        </label>
+        <button type="submit" id="newsletterSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full h5 font-bold">
+          Subscribe
+        </button>
+        <p id="newsletterSuccess" class="text-green-400 text-sm mt-4 text-center" hidden>You’re subscribed — check your inbox soon.</p>
+        <p id="newsletterError" class="text-red-400 text-sm mt-4 text-center" hidden>Something went wrong. Please try again or email support@kommu.ai.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const API_BASE = 'https://aws.kommu.ai';
+  const form = document.getElementById('newsletterSignupForm');
+  if (!form) return;
+
+  const emailEl = document.getElementById('newsletterEmail');
+  const nameEl = document.getElementById('newsletterName');
+  const consentEl = document.getElementById('newsletterConsent');
+  const submitBtn = document.getElementById('newsletterSubmitBtn');
+  const emailError = document.getElementById('newsletterEmailError');
+  const successEl = document.getElementById('newsletterSuccess');
+  const errorEl = document.getElementById('newsletterError');
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    successEl.hidden = true;
+    errorEl.hidden = true;
+    emailError.hidden = true;
+
+    const email = emailEl.value.trim().toLowerCase();
+    const name = nameEl.value.trim();
+
+    if (!emailRegex.test(email)) {
+      emailError.hidden = false;
+      emailEl.focus();
+      return;
+    }
+    if (!consentEl.checked) {
+      errorEl.textContent = 'Please agree to receive marketing emails.';
+      errorEl.hidden = false;
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Subscribing…';
+
+    try {
+      const res = await fetch(API_BASE + '/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          name: name || '',
+          source: 'homepage'
+        })
+      });
+      const data = await res.json().catch(function () { return {}; });
+      if (!res.ok) {
+        throw new Error(data.error || 'Subscribe failed');
+      }
+      form.reset();
+      successEl.hidden = false;
+    } catch (err) {
+      console.error('Newsletter subscribe failed', err);
+      errorEl.textContent = 'Something went wrong. Please try again or email support@kommu.ai.';
+      errorEl.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Subscribe';
+    }
+  });
+})();
+</script>

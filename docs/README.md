@@ -12,6 +12,7 @@ Architecture and checkout documentation for the Jekyll storefront and Curlec (Ra
 | [operations.md](operations.md) | Dashboard, env vars, deployment |
 | [qa-checklist.md](qa-checklist.md) | Manual regression checklist |
 | [installers-google-sheet.md](installers-google-sheet.md) | Authorized Installers page + Google Form sync |
+| [newsletter-setup.md](newsletter-setup.md) | Newsletter signup, Google Sheet list, drip runner |
 | [meta-conversions-api.md](meta-conversions-api.md) | Meta Pixel + Conversions API (Razorpay & Stripe) |
 
 ## Build PDF

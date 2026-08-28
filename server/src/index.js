@@ -34,6 +34,7 @@ app.use(express.json());
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.use('/curlec', curlecRoutes);
+app.use('/newsletter', require('./routes/newsletter'));
 
 app.use((err, _req, res, _next) => {
   console.error(err);

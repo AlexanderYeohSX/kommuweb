@@ -25,8 +25,10 @@
 | `META_PIXEL_ID` | Meta pixel ID (default `586857186218202`) |
 | `META_CAPI_ACCESS_TOKEN` | Meta Conversions API access token (**secret**) |
 | `META_CAPI_TEST_EVENT_CODE` | Optional; Events Manager test code for staging |
+| `NEWSLETTER_SHEET_TAB` | Google Sheet tab name for subscribers (default `Newsletter`) |
 
 See [meta-conversions-api.md](meta-conversions-api.md) for event mapping and testing.
+See [newsletter-setup.md](newsletter-setup.md) for drip email chain + self-hosted runner.
 
 See [cmd_aws/payment/.env.example](../cmd_aws/payment/.env.example).
 

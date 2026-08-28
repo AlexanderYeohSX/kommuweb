@@ -1,0 +1,38 @@
+# Newsletter drip sequence — used by tools/newsletter-runner and documented in docs/newsletter-setup.md
+# delay_days: days after subscribed_at (step 1) or after previous send (steps 2+)
+
+- step: 1
+  id: branding
+  delay_days: 0
+  subject: "Welcome to Kommu — driving the future together"
+  preview: "Who we are and why we built KommuAssist."
+
+- step: 2
+  id: product_features
+  delay_days: 2
+  subject: "What KommuAssist can do for your daily drive"
+  preview: "Level 2 assist, lane keeping, adaptive cruise, and more."
+
+- step: 3
+  id: use_cases
+  delay_days: 2
+  subject: "Real drivers, real commutes — how KommuAssist helps"
+  preview: "Highway trips, traffic jams, and long-distance comfort."
+
+- step: 4
+  id: product_background
+  delay_days: 3
+  subject: "Built in Malaysia, for Malaysian roads"
+  preview: "Our story from open-source roots to KommuAssist 2."
+
+- step: 5
+  id: hardware_specs
+  delay_days: 3
+  subject: "Inside the KommuAssist kit — hardware overview"
+  preview: "Cameras, compute, harness, and what ships in the box."
+
+- step: 6
+  id: technical_info
+  delay_days: 4
+  subject: "Technical deep dive — specs, safety, and compatibility"
+  preview: "CAN integration, supported models, and safety standards."
