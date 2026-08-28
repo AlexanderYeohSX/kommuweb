@@ -27,9 +27,8 @@ permalink: pretty
 # Leave empty for local sample data; set to /exec URL after deploying Apps Script.
 installers_api_url: "https://script.google.com/macros/s/AKfycbwLpJuHrljoy_1SmSxcoIkzAk3aEFJu2TIR9jwTKwvfSI1rKBqYQvsIS157zcMYC7D4/exec"
 
-# Newsletter subscribe API — browsers post here (not Tailscale *.ts.net; blocked on some networks).
-# Requires API Gateway HTTP proxy → Athena Funnel, OR Google Apps Script (see docs/newsletter-setup.md).
-newsletter_api_url: "https://aws.kommu.ai/newsletter/subscribe"
+# Newsletter subscribe API — Google Apps Script on KA Inventory (works on all networks).
+newsletter_api_url: "https://script.google.com/macros/s/AKfycbwf8UdZa6f6ez-BsOSB5yoAYya0inyxpcA9XXuxMUYDLii2GhGV6tbbsDx6rRE-fBlE/exec"
 
 social:
   - title: instagram

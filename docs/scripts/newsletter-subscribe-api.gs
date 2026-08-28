@@ -5,6 +5,7 @@
  * Writes to tab "Newsletter" (headers must match docs/newsletter-setup.md).
  * Use the /exec URL in kommuweb _config.yml → newsletter_api_url
  */
+var SPREADSHEET_ID = '11eE_xlzMILBkW9W1te96Q3x3TLa0Wihpk1Ypy0gU1jk';
 var NEWSLETTER_TAB = 'Newsletter';
 var HEADERS = [
   'email',
@@ -84,7 +85,7 @@ function upsertSubscriber(body) {
 }
 
 function getNewsletterSheet() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(NEWSLETTER_TAB);
   if (!sheet) {
     throw new Error('Sheet not found: ' + NEWSLETTER_TAB);
