@@ -1,0 +1,15 @@
+Hi {{name}},
+
+KommuAssist isn't about replacing the driver — it's about making the drives you already take less tiring.
+
+Where owners use it most:
+- Highway commutes — PLUS, LDP, NKVE, North–South expressway
+- City traffic — smoother follow in stop-and-go
+- Long outstation trips — JB, Penang, Kuantan, and beyond
+- Daily school and office runs — repetitive routes where assist adds up
+
+Check if your car is supported: https://kommu.ai/support
+
+Questions? Reply to this email or support@kommu.ai
+
+— Kommu

@@ -1,0 +1,21 @@
+Hi {{name}},
+
+Here's what's inside KommuAssist 2:
+
+Compute
+- RK3588 with 6 TOPS NPU for on-device neural processing
+- CNC aluminum unibody passive heatsink — fanless design
+- Discreet mount behind the mirror
+
+Vision
+- 3× automotive-grade cameras — wide-angle and long-range
+
+Connectivity & integration
+- LTE, GPS, Wi-Fi, Bluetooth, local storage
+- Model-specific vehicle harness (steering + CAN)
+- KommuAI app support
+
+Professional install recommended: https://kommu.ai/installers
+Configure your kit: https://kommu.ai/product
+
+— Kommu

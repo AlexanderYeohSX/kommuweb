@@ -34,7 +34,9 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"
-SEQUENCE_FILE = ROOT.parent.parent / "_data" / "newsletter_sequence.yaml"
+SEQUENCE_FILE = ROOT / "newsletter_sequence.yaml"
+if not SEQUENCE_FILE.exists():
+    SEQUENCE_FILE = ROOT.parent.parent / "_data" / "newsletter_sequence.yaml"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -118,12 +120,20 @@ def parse_dt(value: str | None) -> datetime | None:
     return None
 
 
+def wrap_email_html(body: str) -> str:
+    shell_path = TEMPLATES / "_email_shell.html"
+    if not shell_path.exists():
+        return body
+    return shell_path.read_text().replace("{{content}}", body)
+
+
 def render_template(step_id: str, name: str) -> tuple[str, str]:
     html_path = TEMPLATES / f"{step_id}.html"
     txt_path = TEMPLATES / f"{step_id}.txt"
     greeting = name.strip() or "there"
     if html_path.exists():
-        html = html_path.read_text().replace("{{name}}", greeting)
+        body = html_path.read_text().replace("{{name}}", greeting)
+        html = wrap_email_html(body)
     else:
         html = f"<p>Hi {greeting},</p><p>(Add template: templates/{step_id}.html)</p>"
     if txt_path.exists():
@@ -143,11 +153,42 @@ def send_email(env: dict, to: str, subject: str, html: str, text: str) -> None:
 
     port = int(env.get("SMTP_PORT", "587"))
     use_tls = env.get("SMTP_TLS", "true").lower() in ("1", "true", "yes")
+    use_ssl = port == 465 or env.get("SMTP_SECURE", "").lower() in ("1", "true", "yes")
+    body = msg.as_string()
+    if use_ssl:
+        with smtplib.SMTP_SSL(env["SMTP_HOST"], port, timeout=60) as smtp:
+            smtp.login(env["SMTP_USER"], env["SMTP_PASSWORD"])
+            smtp.sendmail(env["MAIL_FROM"], [to], body)
+        return
     with smtplib.SMTP(env["SMTP_HOST"], port, timeout=60) as smtp:
         if use_tls:
             smtp.starttls()
         smtp.login(env["SMTP_USER"], env["SMTP_PASSWORD"])
-        smtp.sendmail(env["MAIL_FROM"], [to], msg.as_string())
+        smtp.sendmail(env["MAIL_FROM"], [to], body)
+
+
+def due_at_for_step(
+    env: dict,
+    step: dict,
+    next_step: int,
+    subscribed_at: datetime,
+    last_sent: datetime | None,
+) -> datetime:
+    test_minutes = (env.get("NEWSLETTER_TEST_INTERVAL_MINUTES") or "").strip()
+    if test_minutes:
+        interval = timedelta(minutes=int(test_minutes))
+        if next_step == 1:
+            return subscribed_at
+        base = last_sent or subscribed_at
+        return base + interval
+
+    if next_step == 1:
+        return subscribed_at
+
+    delay_days = int(step.get("delay_days", 2))
+    base = last_sent or subscribed_at
+    due_at = base.replace(hour=0, minute=0, second=0, microsecond=0)
+    return due_at + timedelta(days=delay_days)
 
 
 def row_to_dict(headers: list[str], row: list[str]) -> dict:
@@ -185,16 +226,9 @@ def main() -> None:
         step = sequence[next_step - 1]
         subscribed_at = parse_dt(rec["subscribed_at"]) or now
         last_sent = parse_dt(rec["last_sent_at"])
+        due_at = due_at_for_step(env, step, next_step, subscribed_at, last_sent)
 
-        if next_step == 1:
-            due_at = subscribed_at
-        else:
-            delay_days = int(step.get("delay_days", 2))
-            base = last_sent or subscribed_at
-            due_at = base.replace(hour=0, minute=0, second=0, microsecond=0)
-            due_at = due_at + timedelta(days=delay_days)
-
-        if now < due_at:
+        if now < due_at.astimezone(timezone.utc):
             continue
 
         name = rec["name"]

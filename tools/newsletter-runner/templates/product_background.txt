@@ -1,0 +1,16 @@
+Hi {{name}},
+
+Kommu started in Malaysia's open-source driving community — engineers and enthusiasts who wanted affordable, transparent assist technology for local cars and roads.
+
+That community spirit still drives us:
+- Open development — bukapilot and public compatibility lists
+- Local support — WhatsApp, email, and Facebook owner community
+- Ship from Malaysia — hardware, harnesses, install support based here
+- ASEAN-first tuning — software for conditions we actually drive in
+
+KommuAssist 2 is the integrated kit: compute, cameras, vehicle harness, and software that keeps improving after install.
+
+Find an installer: https://kommu.ai/installers
+
+— Kommu
+https://kommu.ai

@@ -1,8 +1,12 @@
 Hi {{name}},
 
-Welcome to Kommu — we're building driver-assist technology for Malaysian roads.
+Thanks for subscribing — welcome to Kommu.
 
-KommuAssist brings Level 2 features like adaptive cruise and lane keeping to cars you already own.
+We build driver-assist technology for everyday Malaysian commutes: Level 2 features like adaptive cruise and lane keeping, in cars you already own.
+
+KommuAssist 2 pairs dedicated in-car hardware with bukapilot, our community-driven driving stack.
+
+Over the next couple of weeks we'll send a short series on features, use cases, our story, and technical details. Unsubscribe anytime by replying "unsubscribe".
 
 — The Kommu team
 https://kommu.ai
