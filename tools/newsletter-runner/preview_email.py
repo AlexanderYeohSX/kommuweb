@@ -3,19 +3,31 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"
 PREVIEW_DIR = ROOT / "preview"
+REPO_ROOT = ROOT.parent.parent
+NEWSLETTER_IMAGE_URL = "https://kommu.ai/img/newsletter/kommu-driving-heatmap.jpg"
 
 
-def wrap_email_html(body: str) -> str:
+def local_preview_assets(html: str) -> str:
+    heatmap = REPO_ROOT / "img" / "newsletter" / "kommu-driving-heatmap.jpg"
+    if heatmap.exists():
+        rel = Path(os.path.relpath(heatmap, PREVIEW_DIR)).as_posix()
+        html = html.replace(NEWSLETTER_IMAGE_URL, rel)
+    return html
+
+
+def wrap_email_html(body: str, email: str = "preview@example.com") -> str:
     shell_path = TEMPLATES / "_email_shell.html"
     if not shell_path.exists():
         return body
-    return shell_path.read_text().replace("{{content}}", body)
+    shell = shell_path.read_text().replace("{{content}}", body)
+    return shell.replace("{{unsubscribe_url}}", "#preview-unsubscribe")
 
 
 def render(step_id: str, name: str = "there") -> str:
@@ -23,7 +35,7 @@ def render(step_id: str, name: str = "there") -> str:
     if not html_path.exists():
         raise FileNotFoundError(html_path)
     body = html_path.read_text().replace("{{name}}", name)
-    return wrap_email_html(body)
+    return local_preview_assets(wrap_email_html(body))
 
 
 def main() -> None:

@@ -4,8 +4,8 @@
 - step: 1
   id: branding
   delay_days: 0
-  subject: "Welcome to Kommu — smarter drives start here"
-  preview: "Who we are and why we built KommuAssist."
+  subject: "Welcome to Kommunity"
+  preview: "The drives you know — and the community building something better for them."
 
 - step: 2
   id: product_features

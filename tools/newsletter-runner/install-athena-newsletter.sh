@@ -12,7 +12,7 @@ PORT="${SUBSCRIBE_API_PORT:-8788}"
 
 usage() {
   cat <<USAGE
-Usage: $0 install|funnel|status|test-api|test-drip|test-sync|test-mode-on|test-mode-off|uninstall
+Usage: $0 install|funnel|status|test-api|test-drip|test-sync|test-mode-on|test-mode-off|configure-unsubscribe|uninstall
 
   install        — venv, systemd API + drip + sync timers
   funnel         — expose port $PORT via Tailscale Funnel (public HTTPS)
@@ -22,6 +22,7 @@ Usage: $0 install|funnel|status|test-api|test-drip|test-sync|test-mode-on|test-m
   test-sync      — sync orders tab → Newsletter tab once
   test-mode-on   — drip every 1 minute (NEWSLETTER_TEST_INTERVAL_MINUTES=1)
   test-mode-off  — restore hourly drip + production delays
+  configure-unsubscribe — prompt for Apps Script URL + UNSUBSCRIBE_SECRET in .env
 USAGE
   exit 1
 }
@@ -190,6 +191,10 @@ do_uninstall() {
   echo "Uninstalled newsletter units."
 }
 
+do_configure_unsubscribe() {
+  exec "$ROOT/configure-unsubscribe.sh"
+}
+
 case "${1:-}" in
   install) do_install ;;
   funnel) do_funnel ;;
@@ -199,6 +204,7 @@ case "${1:-}" in
   test-sync) do_test_sync ;;
   test-mode-on) do_test_mode_on ;;
   test-mode-off) do_test_mode_off ;;
+  configure-unsubscribe) do_configure_unsubscribe ;;
   uninstall) do_uninstall ;;
   *) usage ;;
 esac

@@ -1,12 +1,16 @@
 Hi {{name}},
 
-Thanks for subscribing — welcome to Kommu.
+Thanks for subscribing — welcome to Kommunity.
 
-We build driver-assist technology for everyday Malaysian commutes: Level 2 features like adaptive cruise and lane keeping, in cars you already own.
+These probably sound familiar: highway commutes, stop-and-go city traffic, long road trips, and the same school or office run, week after week. Tiring drives — but ones most of us take every day. For Malaysian folks — stuck in KL traffic on a weekday, or crawling bumper-to-bumper on the highway when everyone's heading home for the festivities — you know what we mean.
 
-KommuAssist 2 pairs dedicated in-car hardware with bukapilot, our community-driven driving stack.
+That's why we built KommuAssist 2 — not to change the car you love, but to make those drives a little easier. AI-powered cruise makes your long hour trip more relaxed and safer. Lane keeping when your focus wears thin after a long day. Same car, same roads — just a calmer ride when you need it.
 
-Over the next couple of weeks we'll send a short series on features, use cases, our story, and technical details. Unsubscribe anytime by replying "unsubscribe".
+At the heart of it all is bukapilot, an open-source AI driving model built upon openpilot. Trained with 100M+ miles of real-world driving data of a global community.
+
+And you can see it on the road. Every month, Kommunity members navigate more than 360,000 minutes peacefully to their destinations — 6.77 million km travelled to date, each journey helping the stack get a little sharper for everyone.
+
+Whether you're curious, already driving with us, or just watching from the sidelines — we're glad you're here.
 
 — The Kommu team
 https://kommu.ai

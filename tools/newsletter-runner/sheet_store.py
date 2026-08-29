@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
 import re
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 MYT = ZoneInfo("Asia/Kuala_Lumpur")
@@ -118,3 +121,50 @@ def upsert_subscriber(email: str, name: str = "", source: str = "homepage") -> d
         value_input_option="USER_ENTERED",
     )
     return {"ok": True, "email": email, "created": True, "status": "active"}
+
+
+def unsubscribe_token(email: str) -> str:
+    secret = os.environ.get("UNSUBSCRIBE_SECRET", "").strip()
+    if not secret:
+        return ""
+    return hmac.new(secret.encode("utf-8"), email.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def verify_unsubscribe_token(email: str, token: str) -> bool:
+    secret = os.environ.get("UNSUBSCRIBE_SECRET", "").strip()
+    if not secret:
+        return False
+    expected = unsubscribe_token(email)
+    return hmac.compare_digest(expected, token.strip())
+
+
+def unsubscribe_url(email: str) -> str:
+    load_dotenv()
+    normalized = normalize_email(email)
+    base = os.environ.get("NEWSLETTER_APPS_SCRIPT_URL", "").strip().rstrip("/")
+    if not base:
+        raise RuntimeError(
+            "NEWSLETTER_APPS_SCRIPT_URL is not set (same /exec URL as site newsletter_api_url)"
+        )
+    token = unsubscribe_token(normalized)
+    if not token:
+        raise RuntimeError("UNSUBSCRIBE_SECRET is not set")
+    return (
+        f"{base}?action=unsubscribe&email={quote(normalized)}&token={quote(token)}"
+    )
+
+
+def unsubscribe_subscriber(email: str) -> dict:
+    email = normalize_email(email)
+    sheet = get_newsletter_sheet()
+    rows = sheet.get_all_values()
+    col = {h: i + 1 for i, h in enumerate(HEADERS)}
+
+    for idx, row in enumerate(rows[1:], start=2):
+        existing = (row[0] if row else "").strip().lower()
+        if existing != email:
+            continue
+        sheet.update_cell(idx, col["status"], "inactive")
+        return {"ok": True, "email": email, "status": "inactive"}
+
+    return {"ok": False, "error": "Subscriber not found", "email": email}

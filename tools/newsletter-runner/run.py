@@ -120,20 +120,25 @@ def parse_dt(value: str | None) -> datetime | None:
     return None
 
 
-def wrap_email_html(body: str) -> str:
+def wrap_email_html(body: str, email: str = "") -> str:
     shell_path = TEMPLATES / "_email_shell.html"
     if not shell_path.exists():
         return body
-    return shell_path.read_text().replace("{{content}}", body)
+    from sheet_store import load_dotenv, unsubscribe_url
+
+    load_dotenv()
+    shell = shell_path.read_text().replace("{{content}}", body)
+    url = unsubscribe_url(email) if email else "#"
+    return shell.replace("{{unsubscribe_url}}", url)
 
 
-def render_template(step_id: str, name: str) -> tuple[str, str]:
+def render_template(step_id: str, name: str, email: str = "") -> tuple[str, str]:
     html_path = TEMPLATES / f"{step_id}.html"
     txt_path = TEMPLATES / f"{step_id}.txt"
     greeting = name.strip() or "there"
     if html_path.exists():
         body = html_path.read_text().replace("{{name}}", greeting)
-        html = wrap_email_html(body)
+        html = wrap_email_html(body, email)
     else:
         html = f"<p>Hi {greeting},</p><p>(Add template: templates/{step_id}.html)</p>"
     if txt_path.exists():
@@ -215,7 +220,7 @@ def main() -> None:
     for idx, row in enumerate(rows[1:], start=2):
         rec = row_to_dict(HEADERS, row)
         email = rec["email"].strip().lower()
-        if not email or rec["status"].strip().lower() in ("unsubscribed", "completed"):
+        if not email or rec["status"].strip().lower() in ("unsubscribed", "completed", "inactive"):
             continue
 
         step_num = int(rec["sequence_step"] or "0")
@@ -232,7 +237,7 @@ def main() -> None:
             continue
 
         name = rec["name"]
-        html, text = render_template(step["id"], name)
+        html, text = render_template(step["id"], name, email)
         subject = step["subject"]
 
         print(f"Sending step {next_step} ({step['id']}) to {email}")
