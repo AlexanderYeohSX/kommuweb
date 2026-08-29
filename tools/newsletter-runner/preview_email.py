@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"
 PREVIEW_DIR = ROOT / "preview"
 REPO_ROOT = ROOT.parent.parent
-NEWSLETTER_IMAGE_URL = "https://kommu.ai/img/newsletter/kommu-driving-heatmap.jpg"
+NEWSLETTER_IMAGE_URL = "https://alexanderyeohsx.github.io/kommuweb/img/newsletter/kommu-driving-heatmap.jpg"
 
 
 def local_preview_assets(html: str) -> str:
