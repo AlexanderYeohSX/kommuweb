@@ -11,14 +11,19 @@ ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"
 PREVIEW_DIR = ROOT / "preview"
 REPO_ROOT = ROOT.parent.parent
-NEWSLETTER_IMAGE_URL = "https://alexanderyeohsx.github.io/kommuweb/img/newsletter/kommu-driving-heatmap.jpg"
+NEWSLETTER_ASSET_BASE = "https://alexanderyeohsx.github.io/kommuweb/img/newsletter"
+NEWSLETTER_ASSETS = REPO_ROOT / "img" / "newsletter"
 
 
 def local_preview_assets(html: str) -> str:
-    heatmap = REPO_ROOT / "img" / "newsletter" / "kommu-driving-heatmap.jpg"
-    if heatmap.exists():
-        rel = Path(os.path.relpath(heatmap, PREVIEW_DIR)).as_posix()
-        html = html.replace(NEWSLETTER_IMAGE_URL, rel)
+    if not NEWSLETTER_ASSETS.is_dir():
+        return html
+    for path in sorted(NEWSLETTER_ASSETS.iterdir()):
+        if not path.is_file():
+            continue
+        url = f"{NEWSLETTER_ASSET_BASE}/{path.name}"
+        rel = Path(os.path.relpath(path, PREVIEW_DIR)).as_posix()
+        html = html.replace(url, rel)
     return html
 
 
