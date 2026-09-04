@@ -15,6 +15,6 @@ Connectivity & integration
 - Model-specific vehicle harness (steering + CAN)
 - KommuAI app support
 
-Configure your kit: https://kommu.ai/product
+Configure your KommuAssist 2: https://kommu.ai/product
 
 — Kommu
