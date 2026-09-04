@@ -1,16 +1,24 @@
 Hi {{name}},
 
-Kommu started in Malaysia's open-source driving community — engineers and enthusiasts who wanted affordable, transparent assist technology for local cars and roads.
+KommuAssist isn't just the hardware in your car — the KommuAI app keeps you connected to every drive.
 
-That community spirit still drives us:
-- Open development — bukapilot and public compatibility lists
-- Local support — WhatsApp, email, and Facebook owner community
-- Ship from Malaysia — hardware, harnesses, install support based here
-- ASEAN-first tuning — software for conditions we actually drive in
+Pair over Bluetooth for a low-latency link between your phone and KommuAssist — so data and control stay close when you need them.
 
-KommuAssist 2 is the integrated kit: compute, cameras, vehicle harness, and software that keeps improving after install.
+Drive map
+See how much of your journey was assisted by bukapilot.
 
-Find an installer: https://kommu.ai/installers
+Drive footage
+Review on-the-road video from each drive.
+
+Live view
+Watch what bukapilot sees while you're connected.
+
+Settings
+Set personal preferences and perform OTA software updates.
+
+Download KommuAI:
+App Store: https://apps.apple.com/my/app/kommuai/id6745434887
+Google Play: https://play.google.com/store/apps/details?id=com.kommu.kommuai
 
 — Kommu
 https://kommu.ai

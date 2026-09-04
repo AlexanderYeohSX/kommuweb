@@ -22,8 +22,8 @@
 - step: 4
   id: product_background
   delay_days: 3
-  subject: "Built in Malaysia, for Malaysian roads"
-  preview: "Our story from open-source roots to KommuAssist 2."
+  subject: "Meet KommuAI — your drive companion app"
+  preview: "Maps, footage, Live view, and settings for KommuAssist."
 
 - step: 5
   id: hardware_specs
