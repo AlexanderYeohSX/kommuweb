@@ -3,11 +3,11 @@ Hi {{name}},
 KommuAssist 2 is Level 2 driver assistance — you stay in control, but the system shares the workload.
 
 What it helps with:
-- Adaptive cruise control — speed and following distance on highways
-- Lane keeping assist — gentle steering support to stay centred
+- AI autocruise — speed and following distance on highways
+- Active lane keep — always active steering support, follows lead car, detects border, even faded line markings
 - Traffic-aware behaviour — smoother stop-and-go in congestion
-- Road understanding — curves, traffic lights, speed bumps
-- Driver monitoring — ensures you remain attentive
+- Road understanding (beta) — curves, traffic lights, speed bumps
+- Driver attentiveness monitoring — ensures you remain attentive while assist is active without hands on wheel alert
 
 Under the hood runs bukapilot v10 — on-device lateral and longitudinal control, community-driven and continuously improved.
 
