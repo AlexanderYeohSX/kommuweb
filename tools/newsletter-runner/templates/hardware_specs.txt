@@ -4,15 +4,18 @@ Here's what's inside KommuAssist 2:
 
 Compute
 - RK3588 with 6 TOPS NPU for on-device neural processing
+- Power efficient — draws less than 10W from the OBD port
+
+Build
 - CNC aluminum unibody passive heatsink — fanless design
 - Discreet mount behind the mirror
 
 Vision
 - 3× automotive-grade cameras — wide-angle and long-range
+- 140 dB HDR — clear vision at night, in harsh sun, and in the rain
 
 Connectivity & integration
 - LTE, GPS, Wi-Fi, Bluetooth, local storage
-- Model-specific vehicle harness (steering + CAN)
 - KommuAI app support
 
 Configure your KommuAssist 2: https://kommu.ai/product

@@ -2,6 +2,8 @@
 layout: default
 title: Kommu
 ---
+<link rel="preload" as="image" href="{{ '/assets/new-site-vid-poster.jpg' | relative_url }}" fetchpriority="high" media="(min-width: 769px)">
+<link rel="preload" as="image" href="{{ '/assets/new-site-vid-small-poster.jpg' | relative_url }}" fetchpriority="high" media="(max-width: 768px)">
 <style>
   :root {
     --spring-offset: 0; /* set e.g. 80 for fixed headers in px */
@@ -286,6 +288,24 @@ title: Kommu
     background-position: center center, center bottom;
     background-repeat: no-repeat, no-repeat;
   }
+  .home-hero-poster {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 1;
+    background-color: #000;
+    transition: opacity 0.35s ease;
+  }
+  .home-hero-poster.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .home-hero-video {
+    z-index: 0;
+  }
 </style>
 
 <script>
@@ -306,13 +326,28 @@ title: Kommu
 <section id="home" class="relative overflow-hidden">
   <div class="hp1-content-height">
   <video
-    class="absolute inset-0 w-full h-full object-cover"
-    autoplay muted loop playsinline
+    id="homeHeroVideo"
+    class="home-hero-video absolute inset-0 w-full h-full object-cover"
+    muted loop playsinline
     preload="auto"
+    poster="{{ '/assets/new-site-vid-poster.jpg' | relative_url }}"
   >
     <source src="{{ '/assets/new-site-vid-small.mp4' | relative_url }}" type="video/mp4" media="(max-width: 768px)">
     <source src="{{ '/assets/new-site-vid.mp4' | relative_url }}" type="video/mp4">
   </video>
+  <picture>
+    <source media="(max-width: 768px)" srcset="{{ '/assets/new-site-vid-small-poster.jpg' | relative_url }}">
+    <img
+      id="homeHeroPoster"
+      class="home-hero-poster"
+      src="{{ '/assets/new-site-vid-poster.jpg' | relative_url }}"
+      alt=""
+      width="1920"
+      height="1080"
+      decoding="sync"
+      fetchpriority="high"
+    />
+  </picture>
   <div class="home-vignette" aria-hidden="true"></div>
   <div class="absolute inset-0 z-10 flex flex-col items-center justify-end pb-32 text-center px-4 hero-overlay">
     <a
@@ -341,6 +376,58 @@ title: Kommu
   </div>
 </section>
 
+<script>
+  // Poster paints immediately; kick playback ASAP (Safari often ignores preload)
+  (function homeHeroVideo() {
+    const video = document.getElementById('homeHeroVideo');
+    const poster = document.getElementById('homeHeroPoster');
+    if (!video) return;
+
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    video.setAttribute(
+      'poster',
+      isMobile
+        ? "{{ '/assets/new-site-vid-small-poster.jpg' | relative_url }}"
+        : "{{ '/assets/new-site-vid-poster.jpg' | relative_url }}"
+    );
+
+    let started = false;
+    const hidePoster = () => {
+      if (poster) poster.classList.add('is-hidden');
+    };
+
+    const startPlayback = () => {
+      if (started) return;
+      const playPromise = video.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise
+          .then(() => {
+            started = true;
+            hidePoster();
+          })
+          .catch(() => {
+            // Retry when more data arrives
+          });
+      } else {
+        started = true;
+        hidePoster();
+      }
+    };
+
+    video.addEventListener('playing', () => {
+      started = true;
+      hidePoster();
+    });
+    video.addEventListener('canplay', startPlayback);
+    video.addEventListener('loadeddata', startPlayback);
+
+    // Don't wait for canplay — iOS/Safari often won't buffer until play() is called
+    startPlayback();
+    setTimeout(startPlayback, 500);
+    setTimeout(startPlayback, 2000);
+  })();
+</script>
+
 <!-- HARDWARE -->
 <section class="flex hardware-section">
   <div class="max-w-6xl mx-auto pt-35 px-4 hp2-content-height">
@@ -353,7 +440,7 @@ title: Kommu
    <div class="carousel-wrap">
      <div class="h-scroll flex flex-nowrap overflow-x-auto overflow-y-visible scrollbar-hide full-bleed-row row-align pb-14" id="hw-cards">
       <div class="fixed-card">
-        <img src="{{ '/img/main/hw1.png' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl">
+        <img src="{{ '/img/main/hw1.png' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         <h4 class="h3 font-bold text-white">RK3588 at the core.</h4>
         <p class="h5 text-gray mt-2">
           On-device neural processing. 6 TOPS NPU acceleration for real‑time vision inference.
@@ -362,7 +449,7 @@ title: Kommu
 
 
       <div class="fixed-card">
-        <img src="{{ '/img/main/hw2.png' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl">
+        <img src="{{ '/img/main/hw2.png' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         <h4 class="h3 font-bold text-white">3× automotive cameras.</h4>
         <p class="h5 text-gray mt-2">
           Synchronized wide‑angle and long range perception built for automotive‑grade vision.
@@ -372,7 +459,7 @@ title: Kommu
       <div class=" fixed-card wide">
         <picture class="w-full block rounded-3xl">
           <source media="(max-width: 768px)" srcset="{{ '/img/main/hw3-portrait.png' | relative_url }}">
-          <img src="{{ '/img/main/hw3.png' | relative_url }}" alt="Cool by design" class="w-full mb-4 rounded-3xl">
+          <img src="{{ '/img/main/hw3.png' | relative_url }}" alt="Cool by design" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         </picture>
         <h4 class="h3 font-bold text-white">Cool by design.</h4>
         <p class="h5 text-gray mt-2">
@@ -381,7 +468,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/hw4.png' | relative_url }}" alt="Sleek curves" class="w-full mb-4 rounded-3xl">
+        <img src="{{ '/img/main/hw4.png' | relative_url }}" alt="Sleek curves" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         <h4 class="h3 font-bold text-white">Sleek curves.</h4>
         <p class="h5 text-gray mt-2">
           Fanless, screenless module that tucks behind the mirror—no clutter, just capability.
@@ -389,7 +476,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/hw5.png' | relative_url }}" alt="Seamless connectivity" class="w-full mb-4 rounded-3xl">
+        <img src="{{ '/img/main/hw5.png' | relative_url }}" alt="Seamless connectivity" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         <h4 class="h3 font-bold text-white">Seamless connectivity.</h4>
         <p class="h5 text-gray mt-2">
           Equipped with LTE, GPS, Wi-Fi, Bluetooth and local storage. Also works with the new KommuAI app.
@@ -418,7 +505,7 @@ title: Kommu
     <div class="carousel-wrap">
       <div class="h-scroll flex flex-nowrap overflow-x-auto overflow-y-visible gap-11 scrollbar-hide full-bleed-row row-align pb-14" id="sw-cards">
       <div class=" fixed-card">
-        <img src="{{ '/img/main/sw1.png' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl">
+        <img src="{{ '/img/main/sw1.png' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         <h4 class="h3 font-bold text-white">ADAS driving agent.</h4>
         <p class="h5 text-gray mt-2">
           End‑to‑end neural network. Integrated ADAS stack—lateral + longitudinal, driver monitoring and more.
@@ -427,7 +514,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/sw2.png' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl">
+        <img src="{{ '/img/main/sw2.png' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         <h4 class="h3 font-bold text-white">Understands the road.</h4>
         <p class="h5 text-gray mt-2">
           Smart enough to slow for curves, spot traffic lights, and speed bumps.
@@ -437,7 +524,7 @@ title: Kommu
       <div class=" fixed-card wide">
         <picture class="w-full block rounded-3xl">
           <source media="(max-width: 768px)" srcset="{{ '/img/main/sw3-portrait.png' | relative_url }}">
-          <img src="{{ '/img/main/sw3.png' | relative_url }}" alt="Kommunity" class="w-full mb-4 rounded-3xl">
+          <img src="{{ '/img/main/sw3.png' | relative_url }}" alt="Kommunity" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         </picture>
         <h4 class="h3 font-bold text-white">Driven by Kommunity.</h4>
         <p class="h5 text-gray mt-2">
@@ -446,7 +533,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/sw4.png' | relative_url }}" alt="Mounts like magic" class="w-full mb-4 rounded-3xl">
+        <img src="{{ '/img/main/sw4.png' | relative_url }}" alt="Mounts like magic" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
         <h4 class="h3 font-bold text-white">Safety‑focused.</h4>
         <p class="h5 text-gray mt-2">
           Observed ISO26262 Functional Safety Standard & MISRA C code compliant.
@@ -474,12 +561,12 @@ title: Kommu
       >Check Car Models</a>
       <div class="flex flex-wrap justify-center gap-x-12 gap-y-8 mx-auto max-w-[720px] brand-logos-grid">
         <!-- logos -->
-        <img src="{{ '/img/main/perodua.png' | relative_url }}" alt="Perodua" class="brand-logo object-contain" />
-        <img src="{{ '/img/main/proton.png'  | relative_url }}" alt="Proton"  class="brand-logo object-contain" />
-        <img src="{{ '/img/main/honda.png'   | relative_url }}" alt="Honda"   class="brand-logo object-contain" />
-        <img src="{{ '/img/main/toyota.png'  | relative_url }}" alt="Toyota"  class="brand-logo object-contain" />
-        <img src="{{ '/img/main/byd.png'     | relative_url }}" alt="BYD"     class="brand-logo object-contain" />
-        <img src="{{ '/img/main/lexus.png'   | relative_url }}" alt="Lexus"   class="brand-logo object-contain" />
+        <img src="{{ '/img/main/perodua.png' | relative_url }}" alt="Perodua" class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
+        <img src="{{ '/img/main/proton.png'  | relative_url }}" alt="Proton"  class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
+        <img src="{{ '/img/main/honda.png'   | relative_url }}" alt="Honda"   class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
+        <img src="{{ '/img/main/toyota.png'  | relative_url }}" alt="Toyota"  class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
+        <img src="{{ '/img/main/byd.png'     | relative_url }}" alt="BYD"     class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
+        <img src="{{ '/img/main/lexus.png'   | relative_url }}" alt="Lexus"   class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
       </div>
       <div class="mt-8 hidden sm:grid grid-cols-2 md:grid-cols-4 gap-10 text-left text-sm">
         <div>

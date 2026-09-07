@@ -1,6 +1,6 @@
 Hi {{name}},
 
-KommuAssist 2 is Level 2 driver assistance — you stay in control, but the system shares the workload.
+KommuAssist 2 is an AI-powered level 2 driver assistance system — you stay in control, but the system shares the workload.
 
 What it helps with:
 - AI autocruise — speed and following distance on highways

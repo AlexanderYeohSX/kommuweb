@@ -1,24 +1,24 @@
 Hi {{name}},
 
-Last email in this intro series — the practical details.
-
 Compatibility
-Popular models across Perodua, Proton, Honda, Toyota, BYD, Lexus, and more — model-specific harnesses.
-Full list: https://kommu.ai/support
+KommuAssist supports popular models across Perodua, Proton, Honda, Toyota, BYD, Lexus, and more — with model-specific harnesses. See the full supported cars list before you order: https://kommu.ai/support/
 
 Safety
 Development aligned with ISO 26262 and MISRA C practices. Level 2 assist — you must remain attentive and ready to take over.
+
+Installation
+- Free installation at Kommu HQ in Selangor
+- Self-installation following our video guide: https://youtu.be/lzCoMxFTCnc?si=FaVn2BUaRz1EabtI
+- Or let an authorised installer help you once your kit is received: https://kommu.ai/installers
 
 After install
 - Over-the-air software updates
 - 1-year warranty (one-off purchase)
 - 3-year warranty (rent-to-own)
 
-Professional install recommended — authorised installer map: https://kommu.ai/installers
-
 Book a Test Drive: https://calendly.com/kommuassist/test-drive
 
-Thanks for reading. Reply "unsubscribe" anytime to opt out.
+Reply "unsubscribe" anytime to opt out.
 
 — Kommu
 https://kommu.ai · support@kommu.ai
