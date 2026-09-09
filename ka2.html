@@ -6,23 +6,25 @@ stylesheet: products
 {% include pricing_helpers.html %}
 
 <head>
-  <!-- <link href="{{ '/css/ka1s.css' | relative_url }}" rel="stylesheet"> -->
-  <!-- Preload Hero videos (highest priority) -->
-  <link rel="preload" as="video" href="{{ '/assets/ka_ani_s1.webm' | relative_url }}" type="video/webm" fetchpriority="high">
-  <link rel="preload" as="video" href="{{ '/assets/ka_ani_s2_1.mp4' | relative_url }}" type="video/mp4">
-  <link rel="preload" as="video" href="{{ '/assets/ka_ani_s2_1.webm' | relative_url }}" type="video/webm">
-
-  <!-- Prefetch Safety looped animations (used by tabs) -->
-  <link rel="preload" href="{{ '/assets/ka_ani_s3_dm_1.webm' | relative_url }}" as="video" type="video/webm">
-  <link rel="preload" href="{{ '/assets/ka_ani_s3_failsafe_1.webm' | relative_url }}" as="video" type="video/webm">
-  <link rel="preload" href="{{ '/assets/ka_ani_s3_steerlimit_1.webm' | relative_url }}" as="video" type="video/webm">
-
-  <!-- Preload Perception stills (used by tabs) -->
-  <link rel="prefetch" as="image" href="{{ '/img/ka1s/s4_night.png' | relative_url }}">
-  <link rel="prefetch" as="image" href="{{ '/img/ka1s/s4_rain.png' | relative_url }}">
-  <link rel="prefetch" as="image" href="{{ '/img/ka1s/s4_glare.png' | relative_url }}">
-  
-  <link rel="prefetch" as="image" href="{{ '/img/ka1s/s5-1.png' | relative_url }}">
+  <!-- Only preload the hero clip the current browser will actually play. -->
+  <script>
+    (function () {
+      var ua = navigator.userAgent;
+      var isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+      var l = document.createElement('link');
+      l.rel = 'preload';
+      l.as = 'video';
+      l.fetchPriority = 'high';
+      if (isSafari) {
+        l.href = "{{ '/assets/ka_ani_s1.mp4' | relative_url }}?v=frames";
+        l.type = 'video/mp4';
+      } else {
+        l.href = "{{ '/assets/ka_ani_s1.webm' | relative_url }}?v=frames";
+        l.type = 'video/webm';
+      }
+      document.head.appendChild(l);
+    })();
+  </script>
 
   <style>
     /* Mobile floating top panel (Apple-style) */
@@ -235,7 +237,7 @@ stylesheet: products
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      overflow: hidden;
+      overflow: visible;
     }
 
     /* Foreground vignette that sits above bg video but below text */
@@ -259,6 +261,7 @@ stylesheet: products
 
     @media (max-width: 768px) {
       .s1-content-height {
+        align-items: flex-start;
         background-image:
           radial-gradient(120% 120% at 50% 40%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .55) 100%),
           linear-gradient(to bottom, rgba(0, 0, 0, 0) 65%, rgba(0, 0, 0, .9) 100%),
@@ -270,8 +273,14 @@ stylesheet: products
       width: 100%;
       display: grid;
       place-items: center;
-      padding: calc(var(--vh, 1vh) * 10) 0 0;
+      padding: calc(var(--vh, 1vh) * 6) 0 0;
       overflow: visible;
+    }
+
+    @media (max-width: 768px) {
+      .s1-content-height .unit-image-wrapper {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 6.25rem);
+      }
     }
 
     .s2-content-height {
@@ -302,29 +311,40 @@ stylesheet: products
     }
 
     .s1-video {
-      /* width primarily controls size; aspect-ratio derives height */
-      width: auto;
-      height: calc(var(--vh, 1vh) * 60);                /* let aspect-ratio calculate from width */
-      aspect-ratio: 16 / 9;         /* reserve space before load */
+      width: min(880px, 82vw);
+      height: auto;
+      aspect-ratio: 1 / 0.72;
       display: block;
-      background: transparent;      /* transparent so underlying purple bg shows through */
-      object-fit: cover;            /* fill frame consistently */
-      opacity: 1;                   /* fade in once playable */
+      background: transparent;
+      object-fit: cover;
+      object-position: center 52%;
+      opacity: 1;
       transition: opacity .25s ease;
-      border-radius: 12px;          /* optional: match other media rounding */
-      max-height: 58vh;             /* cap relative to viewport height */
+      max-height: 62vh;
+      margin: 0;
+      position: relative;
+      z-index: 0;
+    }
+
+    .s1-content-height .unit-image-wrapper > h1,
+    .s1-content-height .unit-image-wrapper > h2,
+    .s1-section-copy {
+      position: relative;
+      z-index: 2;
     }
 
     @media (max-width: 768px) {
       .s1-video {
-        height: calc(var(--vh, 1vh) * 40); ;
+        width: min(92vw, 48vh);
+        max-height: 44vh;
+        aspect-ratio: 1 / 0.74;
+        object-position: center 52%;
       }
     }
-    /* On flatter/wider screens, keep the hero smaller by capping height more aggressively */
     @media screen and (min-aspect-ratio: 16/9) {
       .s1-video {
-        max-height: 65vh;           /* stronger cap when height is limited */
-        width: auto;                /* allow height cap to determine width via aspect-ratio */
+        width: min(820px, 62vw);
+        max-height: 68vh;
       }
     }
 
@@ -439,7 +459,7 @@ stylesheet: products
     .section-eyebrow {
       display: block;
       line-height: 2.125rem;
-      text-transform: uppercase;
+      text-transform: none;
       color: #b2b2b2;
       margin: 0 0 0.5rem 0;
       /* left-aligned */
@@ -966,43 +986,54 @@ stylesheet: products
     .ports-section {
       position: relative;
       max-width: 1100px;
-      margin: 10rem auto 0rem;
+      margin: calc(var(--vh, 1vh) * 10) auto 0;
       color: #eaeaea;
-      min-height: 120vh;
-      /* enough scroll room to reveal all labels */
-      padding-bottom: 0;
-    }
-
-
-    /* Tablets/phones explicitly in landscape with limited height */
-    @media screen and (orientation: landscape) and (max-height: 900px) {
-      .ports-sticky { min-height: 200vh !important; }
-    }
-
-    .ports-section .section-content {
-      padding-bottom: 0.5rem;
-      /* keep text snug to image */
-    }
-
-    /* Sticky viewport for Ports so image/labels stay while scrolling */
-    .ports-sticky {
-      position: sticky;
-      top: 0;                  /* pin to top of viewport */
-      height: 100vh;           /* occupy full viewport height */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      overflow: clip;
+      /* Tall track: sticky child pins for (this − 100vh) of scroll */
+      height: calc(var(--vh, 1vh) * 320);
+      min-height: calc(var(--vh, 1vh) * 320);
       z-index: 2;
     }
 
-    .ports-sticky .ports-header {
-      position: relative;
-      top: 0;                 /* header stays at top */
-      padding: 1rem 0;        /* comfortable spacing */
+    @media (max-width: 768px) {
+      .ports-section {
+        height: calc(var(--vh, 1vh) * 280);
+        min-height: calc(var(--vh, 1vh) * 280);
+      }
+    }
+
+    .ports-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      height: 100dvh;
       width: 100%;
-      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      overflow: hidden;
+      z-index: 2;
+      padding: 4.5rem 0 1.25rem;
+      box-sizing: border-box;
+      background: #000;
+      isolation: isolate;
+    }
+
+    .ports-header {
+      width: 100%;
+      z-index: 5;
+      flex: 0 0 auto;
+      padding: 1rem 0 0;
+      position: relative;
+      align-self: start;
+    }
+
+    .ports-header h2 {
+      margin-bottom: 1.5rem;
+    }
+
+    .ports-header p {
+      margin-bottom: 1.25rem;
     }
 
     .ports-sub {
@@ -1013,75 +1044,48 @@ stylesheet: products
       max-width: 920px;
     }
 
-    .ports-figure {
-      position: sticky;        /* keep image fixed under the header */
-      top: 60px;               /* sits just below the pinned header */
+    .ports-stage {
+      position: relative;
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
       display: grid;
       place-items: center;
-      margin: 0;               /* tighter to header */
-      align-self: stretch;     /* fill sticky width */
-      z-index: 1;
     }
 
-    .ports-header {
-      align-self: start;
-    }
-
-    /* Ensure .ports-header is always contained within .ports-sticky */
-    .ports-sticky .ports-header {
+    .ports-media {
       position: relative;
-      z-index: 2;
-      /* keep it above the image */
-      width: 100%;
-
-      /* stick to top of the grid area */
-    }
-
-    /* Add more breathing room between title and subcopy */
-    .ports-header h2 {
-      margin-bottom: 1.5rem;
-      /* increase if needed */
-    }
-
-    /* Add more space between subcopy and image */
-    .ports-header p {
-      margin-bottom: 2rem;
-      /* tweak this value */
+      display: block;
+      width: fit-content;
+      max-width: min(900px, 94%);
+      max-height: 100%;
+      line-height: 0;
+      margin: 0 auto;
     }
 
     .ports-image {
-      width: min(900px, 85vw);
-      height: auto;
-      border-radius: 16px;
-      /* match other sections */
       display: block;
-    }
-
-    /* ensure general stacking still behaves with videos */
-    .module-content {
-      position: relative;
-    }
-
-    .unit-image-wrapper {
-      position: relative;
-      z-index: 3;
-    }
-
-    /* --- Ports labels overlay & animation --- */
-    .ports-stage {
-      position: relative;
-      width: min(900px, 85vw);
-    }
-
-
-    @media (max-height: 768px) {
-      .ports-figure { top: 70px; }
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: min(64dvh, 620px);
+      border-radius: 16px;
     }
 
     .ports-overlay {
       position: absolute;
       inset: 0;
       pointer-events: none;
+      z-index: 3;
+      line-height: normal;
+    }
+
+    @media screen and (orientation: landscape) and (max-height: 700px) {
+      .ports-sticky { padding: 1.25rem 0 0.75rem; }
+      .ports-header { padding-top: 0; }
+      .ports-header h2 { margin-bottom: 0.75rem; }
+      .ports-header p { margin-bottom: 0.5rem; }
+      .ports-image { max-height: min(52dvh, 420px); }
     }
 
     .port-label {
@@ -1091,14 +1095,15 @@ stylesheet: products
       /* thinner */
       font-size: clamp(0.8rem, 1.2vw, 1.0rem);
       letter-spacing: 0.02em;
+      line-height: 1.25;
       text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
       /* lighter shadow */
       opacity: 0;
       text-align: center;
       /* NEW: center multi-line text */
       transform: translateY(8px);
-      /* center block horizontally, keep lift */
-      transition: opacity .45s ease, transform .45s ease;
+      /* Scroll-linked; JS drives opacity like Inside explode */
+      transition: none;
       --gap: 8px;
       /* NEW: default space between text and line */
     }
@@ -1142,10 +1147,10 @@ stylesheet: products
       .br-mobile { display: inline; }
       .label-wifi { white-space: normal !important; line-height: 1.2 !important; }
 
-      /* Top row */
-      .ports-overlay .label-gps     { left: 40% !important; top: -10% !important; }
-      .ports-overlay .label-wifi    { left: 46.5% !important; top: 0% !important; }
-      .ports-overlay .label-speaker { left: 63% !important; top: -10% !important; }
+      /* Top row — keep inside the media box so sticky overflow doesn't clip */
+      .ports-overlay .label-gps     { left: 40% !important; top: 0% !important; }
+      .ports-overlay .label-wifi    { left: 46.5% !important; top: 2% !important; }
+      .ports-overlay .label-speaker { left: 63% !important; top: 0% !important; }
 
       /* Bottom row */
       .ports-overlay .label-nanosim    { left: 27% !important; bottom: 0% !important; }
@@ -1581,13 +1586,38 @@ stylesheet: products
     }
 
     .glow {
-  color: #f1f1f1; /* base text color */
-  text-shadow: 
-    0 0 8px  #4B0082,   /* close glow */
-    0 0 10px #4B0082,   /* medium glow */
-    -10px 0 30px #4B0082,   /* color glow */
-    10px 0 40px #4B0082;   /* larger spread */
-}
+      color: #f1f1f1; /* base text color */
+      text-shadow:
+        0 0 8px  #4B0082,   /* close glow */
+        0 0 10px #4B0082,   /* medium glow */
+        -10px 0 30px #4B0082,   /* color glow */
+        10px 0 40px #4B0082;   /* larger spread */
+    }
+
+    @keyframes glowPulse {
+      0%, 100% {
+        text-shadow:
+          0 0 8px #4B0082,
+          0 0 10px #4B0082,
+          -10px 0 30px #4B0082,
+          10px 0 40px #4B0082;
+      }
+      50% {
+        text-shadow:
+          0 0 16px #7C3AED,
+          0 0 28px #6B21A8,
+          -18px 0 48px #4B0082,
+          18px 0 56px #7C3AED;
+      }
+    }
+
+    .glow-pulse {
+      animation: glowPulse 4s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .glow-pulse { animation: none; }
+    }
     .shadow {
   color: #f1f1f1; /* base text color */
   text-shadow: 
@@ -1918,35 +1948,52 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
   <script>
-    // Warm cache for Perception (s4_*) images and Safety (s3_*) videos
-    window.addEventListener('load', function () {
-      const idle = window.requestIdleCallback || (cb => setTimeout(cb, 1200));
-      idle(function () {
-        try {
-          // Perception stills
-          var s4 = [
-            '{{ "/img/ka1s/s4_night.png" | relative_url }}',
-            '{{ "/img/ka1s/s4_rain.png"  | relative_url }}',
-            '{{ "/img/ka1s/s4_glare.png" | relative_url }}'
-          ];
-          s4.forEach(function (src) { var img = new Image(); img.decoding = 'async'; img.loading = 'eager'; img.src = src; });
-
-          // Safety animations
-          var s3 = [
-            '{{ "/assets/ka_ani_s3_dm.webm" | relative_url }}',
-            '{{ "/assets/ka_ani_s3_failsafe.webm" | relative_url }}',
-            '{{ "/assets/ka_ani_s3_steerlimit.webm" | relative_url }}'
-          ];
-          s3.forEach(function (src) {
-            var v = document.createElement('video');
-            v.preload = 'auto';
-            v.muted = true;
-            v.src = src;
-            try { v.load(); } catch (e) { }
-          });
-        } catch (e) { /* no-op */ }
+    window.KA2Media = (function () {
+      var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      function ordered(webm, mp4) {
+        return isSafari
+          ? [{ src: mp4, type: 'video/mp4' }, { src: webm, type: 'video/webm' }]
+          : [{ src: webm, type: 'video/webm' }, { src: mp4, type: 'video/mp4' }];
+      }
+      function fillVideo(el, sources, opts) {
+        if (!el) return;
+        opts = opts || {};
+        while (el.firstChild) el.removeChild(el.firstChild);
+        sources.forEach(function (s) {
+          var n = document.createElement('source');
+          n.src = s.src;
+          n.type = s.type;
+          el.appendChild(n);
+        });
+        el.preload = opts.preload || 'metadata';
+        try { el.load(); } catch (e) {}
+      }
+      function whenNear(el, margin, cb) {
+        if (!el) return;
+        var done = false;
+        var run = function () { if (done) return; done = true; cb(); };
+        if (!('IntersectionObserver' in window)) { run(); return; }
+        var io = new IntersectionObserver(function (entries) {
+          if (entries.some(function (e) { return e.isIntersecting; })) {
+            io.disconnect();
+            run();
+          }
+        }, { rootMargin: margin || '40% 0px', threshold: 0.01 });
+        io.observe(el);
+      }
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('img').forEach(function (img) {
+          var toPng = function () {
+            if (/\.webp(\?|$)/i.test(img.src)) {
+              img.src = img.src.replace(/\.webp/i, '.png');
+            }
+          };
+          img.addEventListener('error', toPng);
+          if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) toPng();
+        });
       });
-    }, { once: true });
+      return { isSafari: isSafari, ordered: ordered, fillVideo: fillVideo, whenNear: whenNear };
+    })();
 
     function goToBuyPage() {
       window.location.href = "{{ '/product' | relative_url }}";
@@ -1979,16 +2026,30 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="module-content s1-content-height">
       <div class="unit-image-wrapper">
         <h1 class="h4" style="color: #f06102;">New</h1>
-        <h2 class="h1 text-white glow">KommuAssist 2</h2>
+        <h2 class="h1 text-white glow glow-pulse">KommuAssist 2</h2>
         <h1 class="h4 text-white">Built for Smarter Journey.</h1>
         <video id="s1Video"
                class="s1-video scroll-video"
                autoplay muted playsinline
+               preload="auto"
+               fetchpriority="high"
+               data-autoplay="true"
                data-play-once="true"
                aria-label="KommuAssist unit rotating on purple glow background">
-          <source src="{{ '/assets/ka_ani_s1.webm' | relative_url }}" type="video/webm">
-          <source src="{{ '/assets/ka_ani_s1.mp4'  | relative_url }}" type="video/mp4">
         </video>
+        <script>
+          (function () {
+            var v = document.getElementById('s1Video');
+            if (!v || !window.KA2Media) return;
+            KA2Media.fillVideo(v, KA2Media.ordered(
+              "{{ '/assets/ka_ani_s1.webm' | relative_url }}?v=frames",
+              "{{ '/assets/ka_ani_s1.mp4'  | relative_url }}?v=frames"
+            ), { preload: 'auto' });
+            v.muted = true;
+            v.playsInline = true;
+            v.play().catch(function () {});
+          })();
+        </script>
       
         <div class="s1-section-copy section-copy--center">
           <button onclick="goToBuyPage()"
@@ -2051,34 +2112,25 @@ document.addEventListener('DOMContentLoaded', function(){
           <div class="h3 section-eyebrow">Performance</div>
           <h2 class="h1 section-title">Stronger. Faster.</h2>
         </div>
-        <video id="s2Video" class="s2-video scroll-video" playsinline autoplay muted preload="metadata" data-autoplay="true"
+        <video id="s2Video" class="s2-video scroll-video" playsinline muted preload="none" data-autoplay="true"
           data-play-once="true" aria-label="KommuAssist unit performance highlight animation">
-          <!-- sources injected dynamically for Safari (mp4 first) vs Chrome/Firefox (webm first) -->
         </video>
         <script>
           (function () {
             var v = document.getElementById('s2Video');
-            if (!v) return;
-            var ua = navigator.userAgent;
-            var isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-            var sources = isSafari
-              ? [
-                { src: "{{ '/assets/ka_ani_s2_1.mp4'  | relative_url }}", type: "video/mp4" },
-                { src: "{{ '/assets/ka_ani_s2_1.webm' | relative_url }}", type: "video/webm" }
-              ]
-              : [
-                { src: "{{ '/assets/ka_ani_s2_1.webm' | relative_url }}", type: "video/webm" },
-                { src: "{{ '/assets/ka_ani_s2_1.mp4'  | relative_url }}", type: "video/mp4" }
-              ];
-            while (v.firstChild) v.removeChild(v.firstChild);
-            sources.forEach(function (s) {
-              var el = document.createElement('source');
-              el.src = s.src; el.type = s.type; v.appendChild(el);
+            if (!v || !window.KA2Media) return;
+            var sources = KA2Media.ordered(
+              "{{ '/assets/ka_ani_s2_1.webm' | relative_url }}?v=orig",
+              "{{ '/assets/ka_ani_s2_1.mp4'  | relative_url }}?v=orig"
+            );
+            KA2Media.whenNear(v.closest('section') || v, '35% 0px', function () {
+              KA2Media.fillVideo(v, sources, { preload: 'auto' });
+              var onReady = function () { v.style.opacity = '1'; v.removeEventListener('canplay', onReady); };
+              v.addEventListener('canplay', onReady, { once: true });
+              v.muted = true;
+              v.playsInline = true;
+              v.play().catch(function () {});
             });
-            try { v.load(); } catch (e) { }
-            const onReady = () => { v.style.opacity = '1'; v.removeEventListener('canplay', onReady); };
-            v.addEventListener('canplay', onReady, { once: true });
-            if (v.readyState >= 3) { v.style.opacity = '1'; }
           })();
         </script>
         <div class="section-copy">
@@ -2150,14 +2202,23 @@ document.addEventListener('DOMContentLoaded', function(){
                data-frames="60"
                data-desktop-prefix="{{ '/assets/ka2_explode_seq/d_' | relative_url }}"
                data-mobile-prefix="{{ '/assets/ka2_explode_seq/m_' | relative_url }}"
-               data-desktop-poster="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
-               data-mobile-poster="{{ '/assets/ka2_explode_mobile_poster.png' | relative_url }}"
-               data-ext=".jpg">
+               data-desktop-poster="{{ '/assets/ka2_explode_desktop_poster.webp' | relative_url }}"
+               data-mobile-poster="{{ '/assets/ka2_explode_mobile_poster.webp' | relative_url }}"
+               data-ext=".webp">
             <canvas id="insideCanvas" class="inside-canvas" width="1440" height="1440"
                     aria-label="KommuPilot explode animation"></canvas>
             <img id="insidePoster" class="inside-poster"
-                 src="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
                  alt="" decoding="async" />
+            <script>
+              (function () {
+                var el = document.getElementById('insidePoster');
+                var media = document.getElementById('insideMedia');
+                if (!el || !media) return;
+                el.src = window.matchMedia('(max-width: 768px)').matches
+                  ? media.dataset.mobilePoster
+                  : media.dataset.desktopPoster;
+              })();
+            </script>
 
             <svg class="inside-lines" id="insideLines" aria-hidden="true"></svg>
 
@@ -2197,9 +2258,9 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
 
         <div class="safety-video-wrap">
-          <video class="safety-video" id="safetyVideo" autoplay
-            muted loop playsinline aria-label="Safety feature animation">
-            <!-- sources injected dynamically by initSafetyTabs() -->
+          <video class="safety-video scroll-video" id="safetyVideo"
+            muted loop playsinline preload="none" data-autoplay="true"
+            aria-label="Safety feature animation">
           </video>
         </div>
 
@@ -2277,8 +2338,8 @@ document.addEventListener('DOMContentLoaded', function(){
     
     <div class="frame-sticky">
       <div class="frame-container">
-        <img class="frame-media" src="{{ '/img/ka1s/s4_night.png' | relative_url }}"
-          alt="KommuAssist driving scene – in-cabin night view" loading="lazy" />
+        <img class="frame-media" src="{{ '/img/ka1s/s4_night.webp' | relative_url }}"
+          alt="KommuAssist driving scene – in-cabin night view" loading="lazy" decoding="async" />
       </div>
 
       <!-- Top text that starts centered (3 lines) and ends left-aligned above the image -->
@@ -2289,7 +2350,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
       <!-- 5-row caption that appears above the image post-shrink -->
       <div class="frame-text frame-caption" aria-hidden="false">
-        <span class="cap-line h3 section-eyebrow">PERCEPTION</span>
+        <span class="cap-line h3 section-eyebrow">Perception</span>
         <span class="cap-line h1 section-title">3 Automotive Cameras.</span>
         <span class="cap-line h2 text-white font-bold">2 on the road. 1 in-cabin.</span>
         <span class="cap-line h4 font-bold text-gray">Precision-tuned for full lane coverage, driver monitoring, and
@@ -2321,43 +2382,38 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
   </section>
   
-  <!-- PORTS & CONNECTIVITY (static image) -->
-  <section class="ports-section" id="ports" data-start="0.05" data-step="0.12" data-ramp="0.15">
-    <div class="module-content">
-      <div class="unit-image-wrapper">
-        <div class="ports-sticky">
+  <!-- PORTS & CONNECTIVITY (sticky image + sequential labels) -->
+  <section class="ports-section" id="ports" data-pin-vh="320"
+           data-start="0.08" data-step="0.08" data-ramp="0.12">
+    <div class="ports-sticky">
+      <div class="ports-header">
+        <div class="h3 section-eyebrow">Ports and Connectivity</div>
+        <h2 class="h1 section-title">Seamless Integration.</h2>
+        <p class="h4 font-bold text-gray text-left">
+          Equipped with <span class="h4 font-bold text-white">LTE, GPS, Wi-Fi, Bluetooth and local storage</span>,
+          this unit is engineered
+          for low-latency connection with KommuAI app, ensuring seamless data exchange and
+          control between devices.
+        </p>
+      </div>
 
-
-          <figure class="ports-figure">
-            <div class="ports-header">
-            <div class="h3 section-eyebrow">Ports and Connectivity</div>
-            <h2 class="h1 section-title">Seamless Integration.</h2>
-            <p class="h4 font-bold text-gray text-left">
-              Equipped with <span class="h4 font-bold text-white">LTE, GPS, Wi-Fi, Bluetooth and local storage</span>,
-              this unit is engineered
-              for low-latency connection with KommuAI app, ensuring seamless data exchange and
-              control between devices.
-            </p>
+      <div class="ports-stage">
+        <div class="ports-media">
+          <img class="ports-image" src="{{ '/img/ka1s/s5-1.webp' | relative_url }}"
+            alt="KommuAssist ports and labels: GPS, Wi-Fi & Bluetooth, Speaker, Nano SIM, MicroSD, Diagnostic USB-C, 12V USB-C"
+            loading="lazy" />
+          <div class="ports-overlay" aria-hidden="true">
+            <span class="port-label top label-gps" style="left: 42.5%; top: 8%;" data-order="2" data-anchor-y="28">GPS</span>
+            <span class="port-label top label-wifi" style="left: 49.5%; top: 8%;" data-order="4" data-anchor-y="28">Wi‑Fi <span class="br-mobile"><br></span>&amp; Bluetooth</span>
+            <span class="port-label top label-speaker" style="left: 66%; top: 8%;" data-order="6" data-anchor-y="28">Speaker</span>
+            <span class="port-label bottom label-nanosim" style="left: 31%; bottom: 20%;" data-order="1" data-anchor-y="41.5">Nano SIM</span>
+            <span class="port-label bottom label-microsd" style="left: 44%; bottom: 20%;" data-order="3" data-anchor-y="41">MicroSD</span>
+            <span class="port-label bottom label-diagnostic" style="left: 57.5%; bottom: 18%;" data-order="5" data-anchor-y="41">Diagnostic<br><span>USB‑C</span></span>
+            <span class="port-label bottom label-12v" style="left: 70%; bottom: 18%;" data-order="7" data-anchor-y="41">12V USB‑C<br><span>(from Relay)</span></span>
           </div>
-            <div class="ports-stage">
-              <img class="ports-image" src="{{ '/img/ka1s/s5-1.png' | relative_url }}"
-                alt="KommuAssist ports and labels: GPS, Wi-Fi & Bluetooth, Speaker, Nano SIM, MicroSD, Diagnostic USB-C, 12V USB-C"
-                loading="lazy" />
-              <div class="ports-overlay" aria-hidden="true">
-                <!-- Top labels -->
-                <span class="port-label top label-gps" style="left: 42.5%; top: 8%;" data-order="2" data-delay="0.00" data-anchor-y="28">GPS</span>
-                <span class="port-label top label-wifi" style="left: 49.5%; top: 8%;" data-order="4" data-delay="0.02" data-anchor-y="28">Wi‑Fi <span class="br-mobile"><br></span>&amp; Bluetooth</span>
-                <span class="port-label top label-speaker" style="left: 66%; top: 8%;" data-order="6" data-delay="0.04" data-anchor-y="28">Speaker</span>
-                <!-- Bottom labels -->
-                <span class="port-label bottom label-nanosim" style="left: 31%; bottom: 20%;" data-order="1" data-delay="0.00" data-anchor-y="41.5">Nano SIM</span>
-                <span class="port-label bottom label-microsd" style="left: 44%; bottom: 20%;" data-order="3" data-delay="0.03" data-anchor-y="41">MicroSD</span>
-                <span class="port-label bottom label-diagnostic" style="left: 57.5%; bottom: 18%;" data-order="5" data-delay="0.05" data-anchor-y="41">Diagnostic<br><span>USB‑C</span></span>
-                <span class="port-label bottom label-12v" style="left: 70%; bottom: 18%;" data-order="7" data-delay="0.08" data-anchor-y="41">12V USB‑C<br><span>(from Relay)</span></span>
-              </div>
-            </div>
-          </figure>
         </div>
       </div>
+    </div>
   </section>
 
   <section class="flex software-section">
@@ -2371,7 +2427,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <div class="carousel-wrap">
         <div class="h-scroll flex flex-nowrap overflow-x-auto overflow-y-visible gap-11 scrollbar-hide full-bleed-row row-align pb-14" id="sw-cards">
         <div class=" fixed-card">
-          <img src="{{ '/img/main/sw1.png' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl">
+          <img src="{{ '/img/main/sw1.webp' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl" loading="lazy" decoding="async">
           <h4 class="h3 font-bold text-white">ADAS driving agent.</h4>
           <p class="h5 text-gray mt-2">
             End‑to‑end neural network. Integrated ADAS stack—lateral + longitudinal, driver monitoring and more.
@@ -2380,7 +2436,7 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
   
         <div class=" fixed-card">
-          <img src="{{ '/img/main/sw2.png' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl">
+          <img src="{{ '/img/main/sw2.webp' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl" loading="lazy" decoding="async">
           <h4 class="h3 font-bold text-white">Understands the road.</h4>
           <p class="h5 text-gray mt-2">
             Smart enough to slow for curves, spot traffic lights, and speed bumps.
@@ -2389,8 +2445,8 @@ document.addEventListener('DOMContentLoaded', function(){
   
         <div class=" fixed-card wide">
           <picture class="w-full block rounded-3xl">
-            <source media="(max-width: 768px)" srcset="{{ '/img/main/sw3-portrait.png' | relative_url }}">
-            <img src="{{ '/img/main/sw3.png' | relative_url }}" alt="Kommunity" class="w-full mb-4 rounded-3xl">
+            <source media="(max-width: 768px)" srcset="{{ '/img/main/sw3-portrait.webp' | relative_url }}">
+            <img src="{{ '/img/main/sw3.webp' | relative_url }}" alt="Kommunity" class="w-full mb-4 rounded-3xl" loading="lazy" decoding="async">
           </picture>
           <h4 class="h3 font-bold text-white">Driven by Kommunity.</h4>
           <p class="h5 text-gray mt-2">
@@ -2399,7 +2455,7 @@ document.addEventListener('DOMContentLoaded', function(){
         </div>
   
         <div class=" fixed-card">
-          <img src="{{ '/img/main/sw4.png' | relative_url }}" alt="Mounts like magic" class="w-full mb-4 rounded-3xl">
+          <img src="{{ '/img/main/sw4.webp' | relative_url }}" alt="Mounts like magic" class="w-full mb-4 rounded-3xl" loading="lazy" decoding="async">
           <h4 class="h3 font-bold text-white">Safety‑focused.</h4>
           <p class="h5 text-gray mt-2">
             Observed ISO26262 Functional Safety Standard & MISRA C code compliant.
@@ -2429,36 +2485,36 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="grid md:grid-cols-3 gap-3 text-center">
       <div class="bg-black rounded-2xl p-6 flex flex-col items-center">
         <h3 class="h3 font-bold">Aluminum unibody</h3>
-        <img src="{{ '/img/ka1s/sum-1.png' | relative_url }}" alt="Alu" class="w-[12rem]">
+        <img src="{{ '/img/ka1s/sum-1.webp' | relative_url }}" alt="Alu" class="w-[12rem]" loading="lazy" decoding="async">
         
         
       </div>
 
       <div class="bg-black rounded-2xl p-6 flex flex-col items-center">
-        <img src="{{ '/img/ka1s/rk.png' | relative_url }}" alt="RK" class="w-[10rem]">
+        <img src="{{ '/img/ka1s/rk.webp' | relative_url }}" alt="RK" class="w-[10rem]" loading="lazy" decoding="async">
         <h3 class="h3 font-bold">Rockchip RK3588</h3>
         <p class="h5 text-gray mt-2">6 TOPS below 10 watts</p>
       </div>
 
       <div class="bg-black rounded-2xl p-6 flex flex-col items-center">
-        <img src="{{ '/img/ka1s/cameras.png' | relative_url }}" alt="Cameras" class="w-[10rem]">
+        <img src="{{ '/img/ka1s/cameras.webp' | relative_url }}" alt="Cameras" class="w-[10rem]" loading="lazy" decoding="async">
         <h3 class="h3 font-bold">3x Automotive Cameras</h3>
         
       </div>
 
       <div class="bg-black rounded-2xl p-6 flex flex-col items-center">
         <h3 class="h3 font-bold">bukapilot v10</h3>
-        <img src="{{ '/img/ka1s/bp10.png' | relative_url }}" alt="bp10" class="w-[10rem]">
+        <img src="{{ '/img/ka1s/bp10.webp' | relative_url }}" alt="bp10" class="w-[10rem]" loading="lazy" decoding="async">
         <p class="h5 text-gray mt-2">end-to-end driving model</p>
       </div>
 
       <div class="bg-black rounded-2xl px-6 pt-0 pb-0 flex flex-col items-center justify-end card-bottom">
         <h3 class="h3 font-bold mb-2">New KommuAI app</h3>
-        <img src="{{ '/img/ka1s/app.png' | relative_url }}" alt="app" class="w-[12rem]">
+        <img src="{{ '/img/ka1s/app.webp' | relative_url }}" alt="app" class="w-[12rem]" loading="lazy" decoding="async">
       </div>
 
       <div class="bg-black rounded-2xl p-6 flex flex-col items-center">
-        <img src="{{ '/img/ka1s/dashcam.png' | relative_url }}" alt="dashcam" class="w-[4rem] mb-2">
+        <img src="{{ '/img/ka1s/dashcam.png' | relative_url }}" alt="dashcam" class="w-[4rem] mb-2" loading="lazy" decoding="async">
         <h3 class="h3 font-bold">Dashcam feature</h3>
         <p class="h5 text-gray mt-2">Retrieve driving footage locally</p>
       </div>
@@ -2476,87 +2532,6 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </section>
 
-  <script>
-    // Ports labels scroll-reveal with auto-normalization
-    (function () {
-      const sec = document.querySelector('.ports-section');
-      if (!sec) return;
-
-      const labels = Array.from(sec.querySelectorAll('.ports-overlay .port-label'));
-      if (labels.length === 0) return;
-
-      const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-
-      // Read tunables
-      let start = parseFloat(sec.dataset.start || '0');
-      let step  = parseFloat(sec.dataset.step  || '0.12');
-      let ramp  = parseFloat(sec.dataset.ramp  || '0.22');
-
-      // Highest order defined in the DOM
-      const maxOrder = labels.reduce((m, el) => Math.max(m, parseInt(el.dataset.order || '1', 10)), 1);
-
-      // If the sequence would overflow past progress=1, compress step so the last label still appears.
-      // We reserve a small tail (0.02) to guarantee full opacity at the end.
-      (function normalize() {
-        const tail = 0.02;
-        const usable = Math.max(0.0, 1.0 - start - ramp - tail);
-        const needed = Math.max(0, (maxOrder - 1)) * step;
-        if (needed > 0 && usable < needed) {
-          const scale = usable / needed;
-          step *= scale;  // compress spacing uniformly
-        }
-      })();
-
-      function sectionProgress(el) {
-        const rect = el.getBoundingClientRect();
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-        const pin = Math.max(1, rect.height - vh);
-        const scrolled = clamp(-rect.top, 0, pin);
-        return clamp(scrolled / pin, 0, 1);
-      }
-
-      function update() {
-        const p = sectionProgress(sec);
-
-        for (const el of labels) {
-          const order = parseInt(el.dataset.order || '1', 10);
-          const delay = parseFloat(el.dataset.delay || '0'); // optional fine‑tuning per label
-          const anchorY = parseFloat(el.dataset.anchorY || '0'); // keeps same API if used elsewhere
-
-          const t0 = start + (order - 1) * step + delay;
-          const t  = clamp((p - t0) / Math.max(0.0001, ramp), 0, 1);
-
-          // opacity & gentle lift
-          el.style.opacity = t.toFixed(3);
-          el.style.transform = `translateY(${(1 - t) * 8}px)`;
-
-          // Keep connector lines centered under/over text regardless of transform
-          // (no-op here since ::after uses left:50%; translateX(-50%))
-        }
-
-        // Fail‑safe: force all labels fully visible at end of section.
-        if (p >= 0.985) {
-          for (const el of labels) {
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
-          }
-        }
-      }
-
-      let ticking = false;
-      function onScroll() {
-        if (!ticking) {
-          ticking = true;
-          requestAnimationFrame(() => { update(); ticking = false; });
-        }
-      }
-
-      // init
-      update();
-      window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll, { passive: true });
-    })();
-  </script>
 </main>
 
 <script>
@@ -2924,11 +2899,11 @@ document.addEventListener('DOMContentLoaded', function(){
         sun:   tabsRoot.querySelector('#tab-panel-sun')
       };
 
-      // Still images were preloaded in <head>
+      // Still images load when this section is near
       const imgSrc = {
-        night: '{{ "/img/ka1s/s4_night.png" | relative_url }}',
-        rain:  '{{ "/img/ka1s/s4_rain.png"  | relative_url }}',
-        sun:   '{{ "/img/ka1s/s4_glare.png" | relative_url }}'
+        night: '{{ "/img/ka1s/s4_night.webp" | relative_url }}',
+        rain:  '{{ "/img/ka1s/s4_rain.webp"  | relative_url }}',
+        sun:   '{{ "/img/ka1s/s4_glare.webp" | relative_url }}'
       };
 
       function px(n) { return `${Math.round(n)}px`; }
@@ -3015,6 +2990,16 @@ document.addEventListener('DOMContentLoaded', function(){
       positionBaseline();
       positionActive();
 
+      if (window.KA2Media) {
+        KA2Media.whenNear(tabsRoot, '40% 0px', function () {
+          Object.keys(imgSrc).forEach(function (key) {
+            var warm = new Image();
+            warm.decoding = 'async';
+            warm.src = imgSrc[key];
+          });
+        });
+      }
+
       // Keep underline aligned on resize/layout changes
       const ro = new ResizeObserver(() => { positionBaseline(); positionActive(); });
       ro.observe(tablist);
@@ -3036,16 +3021,18 @@ document.addEventListener('DOMContentLoaded', function(){
 
       // Safari detection and helper to inject sources in preferred order
       function setVideoSources(v, base) {
-        // base is a string like 'dm', 'failsafe', or 'steerlimit'
-        const webmPath = `{{ '/assets/ka_ani_s3' | relative_url }}`.replace(/\/$/, '') + `_${base}.webm`;
-        // Clear existing sources
-        while (v.firstChild) v.removeChild(v.firstChild);
-        // Always and only use WebM
-        const s = document.createElement('source');
-        s.src = webmPath;
-        s.type = 'video/webm';
-        v.appendChild(s);
-        try { v.load(); } catch(e) {}
+        const webmPath = `{{ '/assets/ka_ani_s3' | relative_url }}`.replace(/\/$/, '') + `_${base}.webm?v=1080p`;
+        const mp4Path = `{{ '/assets/ka_ani_s3' | relative_url }}`.replace(/\/$/, '') + `_${base}.mp4?v=1080p`;
+        if (window.KA2Media) {
+          KA2Media.fillVideo(v, KA2Media.ordered(webmPath, mp4Path), { preload: 'auto' });
+        } else {
+          while (v.firstChild) v.removeChild(v.firstChild);
+          const s = document.createElement('source');
+          s.src = webmPath;
+          s.type = 'video/webm';
+          v.appendChild(s);
+          try { v.load(); } catch (e) {}
+        }
       }
 
       const tablist = document.querySelector('.safety-tablist');
@@ -3092,8 +3079,27 @@ document.addEventListener('DOMContentLoaded', function(){
 
       // Map tab names to source base
       const sourceBase = { attn: 'dm', failsafe: 'failsafe', steer: 'steerlimit' };
+      let mediaArmed = false;
+      let pendingTab = 'attn';
+
+      function playTab(name) {
+        const base = sourceBase[name];
+        if (!base || !mediaArmed) return;
+        video.style.opacity = '0';
+        setTimeout(() => {
+          setVideoSources(video, base);
+          const onCanPlay = () => {
+            video.muted = true; video.playsInline = true; video.loop = true;
+            video.play().catch(() => {});
+            requestAnimationFrame(() => { video.style.opacity = '1'; });
+            video.removeEventListener('canplay', onCanPlay);
+          };
+          video.addEventListener('canplay', onCanPlay, { once: true });
+        }, 80);
+      }
 
       function activate(name) {
+        pendingTab = name;
         tabs.forEach(btn => {
           const active = btn.id === `safety-tab-${name}`;
           btn.setAttribute('aria-selected', String(active));
@@ -3109,22 +3115,7 @@ document.addEventListener('DOMContentLoaded', function(){
             el.hidden = true;
           }
         });
-        const base = sourceBase[name];
-        if (base) {
-          // Fade out current video
-          video.style.opacity = '0';
-          setTimeout(() => {
-            setVideoSources(video, base);
-            const onCanPlay = () => {
-              // Autoplay muted loop when ready, then fade back in
-              video.muted = true; video.playsInline = true; video.loop = true;
-              video.play().catch(() => {});
-              requestAnimationFrame(() => { video.style.opacity = '1'; });
-              video.removeEventListener('canplay', onCanPlay);
-            };
-            video.addEventListener('canplay', onCanPlay, { once: true });
-          }, 350);
-        }
+        playTab(name);
         positionActiveUnderline();
       }
 
@@ -3142,8 +3133,17 @@ document.addEventListener('DOMContentLoaded', function(){
         });
       });
 
-      // default
+      // default UI; video waits until the section is near
       activate('attn');
+      if (window.KA2Media) {
+        KA2Media.whenNear(document.getElementById('safety'), '40% 0px', function () {
+          mediaArmed = true;
+          playTab(pendingTab);
+        });
+      } else {
+        mediaArmed = true;
+        playTab(pendingTab);
+      }
       positionBaseline();
       positionActiveUnderline();
 
@@ -3195,13 +3195,15 @@ document.addEventListener('DOMContentLoaded', function(){
         const prefix = mobile ? media.dataset.mobilePrefix : media.dataset.desktopPrefix;
         const n = String(i).padStart(2, '0');
         // Cache-bust when frames are re-exported
-        return `${prefix}${n}${ext}?v=9`;
+        return `${prefix}${n}${ext}?v=10`;
       }
 
-      // ---- Frame cache (desktop + mobile) ----
-      const cache = { desktop: new Array(frameCount), mobile: new Array(frameCount) };
-      let loadedDesktop = 0;
-      let loadedMobile = 0;
+      // Compressed blobs stay in memory (~few MB). Decoded bitmaps are windowed
+      // so phones do not hold 60 RGBA frames at once.
+      const blobs = { desktop: new Array(frameCount), mobile: new Array(frameCount) };
+      const bitmaps = { desktop: new Array(frameCount), mobile: new Array(frameCount) };
+      const inflight = { desktop: new Array(frameCount), mobile: new Array(frameCount) };
+      let prefetched = { desktop: false, mobile: false };
       let activeMobile = mobileMq.matches;
       let drawnIndex = -1;
       let smoothP = 0;
@@ -3209,63 +3211,137 @@ document.addEventListener('DOMContentLoaded', function(){
       let running = false;
       let inView = false;
 
-      function loadSet(mobile) {
+      function activeKey() { return activeMobile ? 'mobile' : 'desktop'; }
+      function keepRadius() { return activeMobile ? 5 : 8; }
+
+      function fetchBlob(index, mobile) {
         const key = mobile ? 'mobile' : 'desktop';
-        const bucket = cache[key];
-        for (let i = 1; i <= frameCount; i++) {
-          if (bucket[i - 1]) continue;
-          const img = new Image();
-          img.decoding = 'async';
-          img.src = frameUrl(i, mobile);
-          img.onload = () => {
-            bucket[i - 1] = img;
-            if (mobile) loadedMobile++; else loadedDesktop++;
-            // Draw as soon as first frame ready
-            if (drawnIndex < 0 && i === 1) drawFrame(0);
-            else if (inView) drawFrame(Math.round(smoothP * (frameCount - 1)));
-            else fitMediaToStage();
+        if (blobs[key][index]) return Promise.resolve(blobs[key][index]);
+        if (inflight[key][index]) return inflight[key][index];
+        inflight[key][index] = fetch(frameUrl(index + 1, mobile), { cache: 'force-cache' })
+          .then(function (r) { return r.blob(); })
+          .then(function (b) { blobs[key][index] = b; return b; })
+          .catch(function () { inflight[key][index] = null; return null; });
+        return inflight[key][index];
+      }
+
+      function prefetchSet(mobile) {
+        let cursor = 0;
+        const workers = 3;
+        function worker() {
+          const run = function () {
+            if (cursor >= frameCount) return Promise.resolve();
+            const i = cursor++;
+            return fetchBlob(i, mobile).then(run);
           };
+          return run();
         }
+        const jobs = [];
+        for (let w = 0; w < workers; w++) jobs.push(worker());
+        return Promise.all(jobs);
+      }
+
+      function ensureBitmap(index) {
+        const key = activeKey();
+        if (bitmaps[key][index]) return Promise.resolve(bitmaps[key][index]);
+        return fetchBlob(index, activeMobile).then(function (blob) {
+          if (!blob) return null;
+          if (typeof createImageBitmap === 'function') {
+            return createImageBitmap(blob).then(function (bmp) {
+              bitmaps[key][index] = bmp;
+              return bmp;
+            });
+          }
+          return new Promise(function (resolve) {
+            const img = new Image();
+            img.onload = function () { bitmaps[key][index] = img; resolve(img); };
+            img.onerror = function () { resolve(null); };
+            img.src = URL.createObjectURL(blob);
+          });
+        });
+      }
+
+      function evictBitmaps(center) {
+        const key = activeKey();
+        const r = keepRadius();
+        for (let i = 0; i < frameCount; i++) {
+          if (Math.abs(i - center) > r && bitmaps[key][i]) {
+            const b = bitmaps[key][i];
+            if (b && typeof b.close === 'function') b.close();
+            bitmaps[key][i] = null;
+          }
+        }
+      }
+
+      function warmAround(index) {
+        const r = keepRadius();
+        const start = Math.max(0, index - r);
+        const end = Math.min(frameCount - 1, index + r);
+        const jobs = [];
+        for (let i = start; i <= end; i++) {
+          jobs.push(ensureBitmap(i).then(function () {
+            if (i === index || drawnIndex < 0) drawFrame(index);
+          }));
+        }
+        evictBitmaps(index);
+        return Promise.all(jobs);
       }
 
       function ensureSet() {
-        activeMobile = mobileMq.matches;
-        loadSet(activeMobile);
-        // Warm the other set in idle time
-        const warm = () => loadSet(!activeMobile);
-        if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 2000 });
-        else setTimeout(warm, 600);
-      }
-
-      function resizeCanvas() {
-        // Match the active frame file's native pixel size (no stretch in bitmap space)
-        const img = (activeMobile ? cache.mobile : cache.desktop)[Math.max(0, drawnIndex)];
-        const w = img?.naturalWidth || (activeMobile ? 1080 : 1440);
-        const h = img?.naturalHeight || (activeMobile ? 1216 : 1440);
-        if (canvas.width !== w || canvas.height !== h) {
-          canvas.width = w;
-          canvas.height = h;
+        activeMobile = layoutBand() === 'phone';
+        const startIndex = reduceMotion ? (frameCount - 1) : Math.max(0, Math.round(progressToIndex(smoothP)));
+        if (reduceMotion) {
+          ensureBitmap(frameCount - 1).then(function () { drawFrame(frameCount - 1); });
+          return;
+        }
+        warmAround(startIndex);
+        const key = activeKey();
+        if (!prefetched[key]) {
+          prefetched[key] = true;
+          prefetchSet(activeMobile).catch(function () {});
         }
       }
 
-      // Keep the media box aspect ratio identical to the frame file, fitted into the stage
+      function currentBitmap(index) {
+        const key = activeKey();
+        if (bitmaps[key][index]) return bitmaps[key][index];
+        for (let d = 1; d < frameCount; d++) {
+          if (bitmaps[key][index - d]) return bitmaps[key][index - d];
+          if (bitmaps[key][index + d]) return bitmaps[key][index + d];
+        }
+        return null;
+      }
+
+      function bmpSize(img, fallbackW, fallbackH) {
+        return {
+          w: img?.naturalWidth || img?.width || fallbackW,
+          h: img?.naturalHeight || img?.height || fallbackH
+        };
+      }
+
+      function resizeCanvas() {
+        const img = currentBitmap(Math.max(0, drawnIndex));
+        const s = bmpSize(img, activeMobile ? 1080 : 1440, activeMobile ? 1216 : 1440);
+        if (canvas.width !== s.w || canvas.height !== s.h) {
+          canvas.width = s.w;
+          canvas.height = s.h;
+        }
+      }
+
       function fitMediaToStage() {
         const stage = media.parentElement;
         if (!stage) return;
-        const bucket = activeMobile ? cache.mobile : cache.desktop;
-        const img = bucket[Math.max(0, drawnIndex)] || bucket.find(Boolean);
-        const nw = img?.naturalWidth || (activeMobile ? 1080 : 1440);
-        const nh = img?.naturalHeight || (activeMobile ? 1216 : 1440);
-        const ar = nw / Math.max(1, nh);
+        const img = currentBitmap(Math.max(0, drawnIndex));
+        const s = bmpSize(img, activeMobile ? 1080 : 1440, activeMobile ? 1216 : 1440);
+        const ar = s.w / Math.max(1, s.h);
 
         media.style.setProperty('--inside-ar', String(ar));
-        media.style.aspectRatio = `${nw} / ${nh}`;
+        media.style.aspectRatio = `${s.w} / ${s.h}`;
 
         const sr = stage.getBoundingClientRect();
         if (sr.width < 2 || sr.height < 2) return;
 
         const band = window.innerWidth <= 768 ? 'phone' : (window.innerWidth <= 1100 ? 'tablet' : 'desktop');
-        // Phone uses most of the stage so the unit reads larger; labels still overflow visibly
         const maxW = Math.min(
           sr.width * (band === 'phone' ? 0.92 : band === 'tablet' ? 0.72 : 0.98),
           band === 'phone' ? 460 : band === 'tablet' ? 640 : 920
@@ -3285,13 +3361,11 @@ document.addEventListener('DOMContentLoaded', function(){
       }
 
       function drawFrame(index) {
-        const bucket = activeMobile ? cache.mobile : cache.desktop;
-        const img = bucket[clamp(index, 0, frameCount - 1)];
+        const img = currentBitmap(clamp(index, 0, frameCount - 1));
         if (!img) return;
         resizeCanvas();
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        // 1:1 draw — CSS box already matches native aspect, so no stretch
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         drawnIndex = index;
         if (poster) poster.classList.add('is-hidden');
@@ -3580,7 +3654,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
         const idxFloat = progressToIndex(smoothP);
         const idx = Math.round(idxFloat);
-        if (idx !== drawnIndex) drawFrame(idx);
+        if (idx !== drawnIndex) {
+          drawFrame(idx);
+          if (inView) warmAround(idx);
+        }
 
         updateLabels(smoothP);
         section.dataset.progress = smoothP.toFixed(3);
@@ -3614,8 +3691,7 @@ document.addEventListener('DOMContentLoaded', function(){
       io.observe(section);
 
       applyLabelLayout();
-      ensureSet();
-      // Initial draw poster/frame 0
+      fitMediaToStage();
       targetP = smoothP = sectionProgress(section);
       if (reduceMotion) {
         drawFrame(frameCount - 1);
@@ -3660,8 +3736,7 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     })();
 
-    // 🔌 Ports & Connectivity label animations
-    // --- Ports labels entrance (ordered, tunable, scroll‑linked) ---
+    // 🔌 Ports: sticky device + sequential labels, then a hold so you don't skip past
     (function initPortsLabels() {
       const section = document.getElementById('ports');
       if (!section) return;
@@ -3672,72 +3747,120 @@ document.addEventListener('DOMContentLoaded', function(){
         .sort((a, b) => (parseInt(a.dataset.order || '0', 10) - parseInt(b.dataset.order || '0', 10)));
 
       const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-      const ease = (t) => t * t * (3 - 2 * t); // smoothstep
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const ease = (t) => t * t * (3 - 2 * t);
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+      const mobileMq = window.matchMedia('(max-width: 768px)');
 
-      // Section-level timing controls (in progress units 0..1)
+      function applyPinHeight() {
+        const pinVh = parseFloat(section.dataset.pinVh || '320');
+        const pinUse = mobileMq.matches ? Math.min(pinVh, 280) : pinVh;
+        if (!Number.isNaN(pinUse) && pinUse > 0) {
+          const h = `calc(var(--vh, 1vh) * ${pinUse})`;
+          section.style.height = h;
+          section.style.minHeight = h;
+        }
+      }
+      applyPinHeight();
+
       function getTiming() {
-        const start = parseFloat(section.dataset.start || '0.05'); // when first label begins
-        const step = parseFloat(section.dataset.step || '0.1'); // spacing between labels
-        const ramp = parseFloat(section.dataset.ramp || '0.1'); // duration per label
-        return { start, step, ramp };
+        return {
+          start: parseFloat(section.dataset.start || '0.08'),
+          step: parseFloat(section.dataset.step || '0.08'),
+          ramp: parseFloat(section.dataset.ramp || '0.12')
+        };
       }
 
-      function progress() {
-        // Reuse the same pinned progress helper used for Perception
-        // 0 when the Ports section pins, 1 when it unpins
-        return sectionProgress(section);
+      function pinProgress() {
+        const rect = section.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const pin = Math.max(1, rect.height - vh);
+        return clamp(-rect.top / pin, 0, 1);
       }
 
-      function render() {
-        const p = ease(progress());
-        const { start, step, ramp } = getTiming();
+      function syncLines() {
         const overlayRect = overlay.getBoundingClientRect();
-
-        labels.forEach((el, i) => {
-          // --- Scroll reveal opacity/offset ---
-          const customDelay = parseFloat(el.dataset.delay || '0');
-          const t0 = start + i * step + customDelay;               // reveal threshold
-          const t = clamp((p - t0) / ramp, 0, 1);                 // 0..1 within [t0, t0+ramp]
-          el.style.opacity = t.toFixed(3);
-          el.style.transform = `translateY(${(1 - t) * 8}px)`;
-          if (t > 0.999) el.classList.add('in');
-
-          // --- Responsive connector length to hit anchor Y (if provided) ---
-          const anchorAttr = el.dataset.anchorY; // percent of overlay height (0-100)
-          if (anchorAttr) {
-            const anchorPct = parseFloat(anchorAttr);
-            if (!Number.isNaN(anchorPct)) {
-              const anchorY = overlayRect.top + (overlayRect.height * (anchorPct > 1 ? anchorPct / 100 : anchorPct));
-              const gapPx = (() => {
-                const s = getComputedStyle(el).getPropertyValue('--gap');
-                const n = parseFloat(s);
-                return Number.isNaN(n) ? 8 : n;
-              })();
-              const r = el.getBoundingClientRect();
-              let dist;
-              if (el.classList.contains('top')) {
-                const labelBottom = r.top + r.height; // bottom of text box
-                dist = anchorY - labelBottom - gapPx;
-              } else { // bottom label: line goes upward
-                const labelTop = r.top;               // top of text box
-                dist = labelTop - anchorY - gapPx;
-              }
-              el.style.setProperty('--line', Math.max(0, Math.round(dist)) + 'px');
-            }
+        labels.forEach((el) => {
+          const anchorAttr = el.dataset.anchorY;
+          if (!anchorAttr) return;
+          const anchorPct = parseFloat(anchorAttr);
+          if (Number.isNaN(anchorPct)) return;
+          const anchorY = overlayRect.top + (overlayRect.height * (anchorPct > 1 ? anchorPct / 100 : anchorPct));
+          const gapRaw = parseFloat(getComputedStyle(el).getPropertyValue('--gap'));
+          const gapPx = Number.isNaN(gapRaw) ? 8 : gapRaw;
+          const r = el.getBoundingClientRect();
+          let dist;
+          if (el.classList.contains('top')) {
+            dist = anchorY - (r.top + r.height) - gapPx;
+          } else {
+            dist = r.top - anchorY - gapPx;
           }
+          el.style.setProperty('--line', Math.max(0, Math.round(dist)) + 'px');
         });
       }
 
-      render();
-      window.addEventListener('scroll', render, { passive: true });
-      window.addEventListener('resize', render, { passive: true });
+      function render(p) {
+        const { start, step, ramp } = getTiming();
+        labels.forEach((el, i) => {
+          const t0 = start + i * step;
+          const t = reduceMotion ? 1 : ease(clamp((p - t0) / Math.max(0.0001, ramp), 0, 1));
+          el.style.opacity = t.toFixed(3);
+          el.style.transform = `translateY(${(1 - t) * 8}px)`;
+          el.classList.toggle('in', t > 0.999);
+        });
+        syncLines();
+      }
 
-      // Expose a tiny live‑tuning hook in DevTools: window.portsTiming({start,step,ramp})
+      let smoothP = 0;
+      let targetP = 0;
+      let running = false;
+      let inView = false;
+
+      function tick() {
+        if (!running) return;
+        targetP = pinProgress();
+        const k = reduceMotion ? 1 : (mobileMq.matches ? 0.14 : 0.12);
+        smoothP = lerp(smoothP, targetP, k);
+        if (Math.abs(smoothP - targetP) < 0.0005) smoothP = targetP;
+        render(smoothP);
+        if (inView || Math.abs(smoothP - targetP) > 0.001) requestAnimationFrame(tick);
+        else running = false;
+      }
+
+      function startLoop() {
+        if (running) return;
+        running = true;
+        requestAnimationFrame(tick);
+      }
+
+      smoothP = pinProgress();
+      render(smoothP);
+
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          inView = e.isIntersecting;
+          if (inView) startLoop();
+        });
+      }, { rootMargin: '20% 0px' });
+      io.observe(section);
+
+      window.addEventListener('scroll', startLoop, { passive: true });
+      window.addEventListener('resize', () => {
+        applyPinHeight();
+        startLoop();
+      }, { passive: true });
+      mobileMq.addEventListener?.('change', () => {
+        applyPinHeight();
+        startLoop();
+      });
+
       window.portsTiming = (cfg = {}) => {
         if (cfg.start != null) section.dataset.start = cfg.start;
         if (cfg.step != null) section.dataset.step = cfg.step;
         if (cfg.ramp != null) section.dataset.ramp = cfg.ramp;
-        render();
+        if (cfg.pinVh != null) section.dataset.pinVh = cfg.pinVh;
+        applyPinHeight();
+        render(pinProgress());
       };
     })();
     // 📊 Performance meters animation

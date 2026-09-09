@@ -2,8 +2,21 @@
 layout: default
 title: Kommu
 ---
-<link rel="preload" as="image" href="{{ '/assets/new-site-vid-poster.jpg' | relative_url }}" fetchpriority="high" media="(min-width: 769px)">
-<link rel="preload" as="image" href="{{ '/assets/new-site-vid-small-poster.jpg' | relative_url }}" fetchpriority="high" media="(max-width: 768px)">
+<script>
+  // First paint: only the matching hero first-frame. Video waits until this is on screen.
+  (function () {
+    var mobile = window.matchMedia('(max-width: 768px)').matches;
+    var l = document.createElement('link');
+    l.rel = 'preload';
+    l.as = 'image';
+    l.href = mobile
+      ? "{{ '/assets/new-site-vid-small-poster.webp' | relative_url }}?v=hero"
+      : "{{ '/assets/new-site-vid-poster.webp' | relative_url }}?v=hero";
+    l.type = 'image/webp';
+    l.fetchPriority = 'high';
+    document.head.appendChild(l);
+  })();
+</script>
 <style>
   :root {
     --spring-offset: 0; /* set e.g. 80 for fixed headers in px */
@@ -306,9 +319,80 @@ title: Kommu
   .home-hero-video {
     z-index: 0;
   }
+
+  /* Same fade-up as KA2 Software / bukapilot */
+  @keyframes fadeUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .hardware-section .fade-up-target,
+  .software-section .fade-up-target {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .hardware-section .fade-up,
+  .software-section .fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hardware-section .fade-up-target,
+    .software-section .fade-up-target {
+      opacity: 1;
+      transform: none;
+    }
+    .hardware-section .fade-up,
+    .software-section .fade-up {
+      animation: none;
+    }
+  }
 </style>
 
 <script>
+  window.HomeMedia = (function () {
+    function whenNear(el, margin, cb) {
+      if (!el) return;
+      var done = false;
+      var run = function () { if (done) return; done = true; cb(); };
+      if (!('IntersectionObserver' in window)) { run(); return; }
+      var io = new IntersectionObserver(function (entries) {
+        if (entries.some(function (e) { return e.isIntersecting; })) {
+          io.disconnect();
+          run();
+        }
+      }, { rootMargin: margin || '20% 0px', threshold: 0.01 });
+      io.observe(el);
+    }
+    function reveal(section) {
+      if (!section) return;
+      section.querySelectorAll('source[data-srcset]').forEach(function (s) {
+        s.srcset = s.getAttribute('data-srcset');
+        s.removeAttribute('data-srcset');
+      });
+      section.querySelectorAll('img[data-src]').forEach(function (img) {
+        img.src = img.getAttribute('data-src');
+        img.removeAttribute('data-src');
+      });
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('img').forEach(function (img) {
+        var toFallback = function () {
+          if (!/\.webp(\?|$)/i.test(img.src)) return;
+          img.src = /\/assets\//.test(img.src)
+            ? img.src.replace(/\.webp/i, '.jpg')
+            : img.src.replace(/\.webp/i, '.png');
+        };
+        img.addEventListener('error', toFallback);
+      });
+    });
+    return { whenNear: whenNear, reveal: reveal };
+  })();
+
   // Hard-lock --vh once; only refresh on orientation change
   (function lockOnce() {
     const apply = () => {
@@ -329,18 +413,15 @@ title: Kommu
     id="homeHeroVideo"
     class="home-hero-video absolute inset-0 w-full h-full object-cover"
     muted loop playsinline
-    preload="auto"
-    poster="{{ '/assets/new-site-vid-poster.jpg' | relative_url }}"
-  >
-    <source src="{{ '/assets/new-site-vid-small.mp4' | relative_url }}" type="video/mp4" media="(max-width: 768px)">
-    <source src="{{ '/assets/new-site-vid.mp4' | relative_url }}" type="video/mp4">
-  </video>
+    preload="none"
+    fetchpriority="high"
+  ></video>
   <picture>
-    <source media="(max-width: 768px)" srcset="{{ '/assets/new-site-vid-small-poster.jpg' | relative_url }}">
+    <source media="(max-width: 768px)" srcset="{{ '/assets/new-site-vid-small-poster.webp' | relative_url }}?v=hero">
     <img
       id="homeHeroPoster"
       class="home-hero-poster"
-      src="{{ '/assets/new-site-vid-poster.jpg' | relative_url }}"
+      src="{{ '/assets/new-site-vid-poster.webp' | relative_url }}?v=hero"
       alt=""
       width="1920"
       height="1080"
@@ -377,54 +458,75 @@ title: Kommu
 </section>
 
 <script>
-  // Poster paints immediately; kick playback ASAP (Safari often ignores preload)
+  // Poster first, then one hero clip at high priority, then below-fold media.
   (function homeHeroVideo() {
     const video = document.getElementById('homeHeroVideo');
     const poster = document.getElementById('homeHeroPoster');
     if (!video) return;
 
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    video.setAttribute(
-      'poster',
-      isMobile
-        ? "{{ '/assets/new-site-vid-small-poster.jpg' | relative_url }}"
-        : "{{ '/assets/new-site-vid-poster.jpg' | relative_url }}"
-    );
+    const posterSrc = isMobile
+      ? "{{ '/assets/new-site-vid-small-poster.webp' | relative_url }}?v=hero"
+      : "{{ '/assets/new-site-vid-poster.webp' | relative_url }}?v=hero";
+    const videoSrc = isMobile
+      ? "{{ '/assets/new-site-vid-small.mp4' | relative_url }}?v=hero"
+      : "{{ '/assets/new-site-vid.mp4' | relative_url }}?v=hero";
 
-    let started = false;
+    video.setAttribute('poster', posterSrc);
+
+    let attached = false;
     const hidePoster = () => {
       if (poster) poster.classList.add('is-hidden');
     };
 
     const startPlayback = () => {
-      if (started) return;
       const playPromise = video.play();
-      if (playPromise && typeof playPromise.then === 'function') {
-        playPromise
-          .then(() => {
-            started = true;
-            hidePoster();
-          })
-          .catch(() => {
-            // Retry when more data arrives
-          });
-      } else {
-        started = true;
-        hidePoster();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function () {});
       }
     };
 
-    video.addEventListener('playing', () => {
-      started = true;
-      hidePoster();
-    });
+    const attachVideo = () => {
+      if (attached) return;
+      attached = true;
+      video.preload = 'auto';
+      video.setAttribute('fetchpriority', 'high');
+      try { video.fetchPriority = 'high'; } catch (e) {}
+      video.src = videoSrc;
+      try { video.load(); } catch (e) {}
+      startPlayback();
+    };
+
+    video.addEventListener('playing', hidePoster);
     video.addEventListener('canplay', startPlayback);
     video.addEventListener('loadeddata', startPlayback);
 
-    // Don't wait for canplay — iOS/Safari often won't buffer until play() is called
-    startPlayback();
-    setTimeout(startPlayback, 500);
-    setTimeout(startPlayback, 2000);
+    if (poster && poster.complete && poster.naturalWidth) {
+      attachVideo();
+    } else if (poster) {
+      poster.addEventListener('load', attachVideo, { once: true });
+      poster.addEventListener('error', attachVideo, { once: true });
+    } else {
+      attachVideo();
+    }
+    setTimeout(attachVideo, 800);
+
+    let belowArmed = false;
+    const armBelowFold = () => {
+      if (belowArmed || !window.HomeMedia) return;
+      belowArmed = true;
+      HomeMedia.whenNear(document.querySelector('.hardware-section'), '20% 0px', function () {
+        HomeMedia.reveal(document.querySelector('.hardware-section'));
+      });
+      HomeMedia.whenNear(document.querySelector('.software-section'), '20% 0px', function () {
+        HomeMedia.reveal(document.querySelector('.software-section'));
+      });
+      HomeMedia.whenNear(document.querySelector('.car-compatible-section'), '20% 0px', function () {
+        HomeMedia.reveal(document.querySelector('.car-compatible-section'));
+      });
+    };
+    video.addEventListener('playing', armBelowFold);
+    setTimeout(armBelowFold, 2500);
   })();
 </script>
 
@@ -440,7 +542,7 @@ title: Kommu
    <div class="carousel-wrap">
      <div class="h-scroll flex flex-nowrap overflow-x-auto overflow-y-visible scrollbar-hide full-bleed-row row-align pb-14" id="hw-cards">
       <div class="fixed-card">
-        <img src="{{ '/img/main/hw1.png' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+        <img data-src="{{ '/img/main/hw1.webp' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         <h4 class="h3 font-bold text-white">RK3588 at the core.</h4>
         <p class="h5 text-gray mt-2">
           On-device neural processing. 6 TOPS NPU acceleration for real‑time vision inference.
@@ -449,7 +551,7 @@ title: Kommu
 
 
       <div class="fixed-card">
-        <img src="{{ '/img/main/hw2.png' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+        <img data-src="{{ '/img/main/hw2.webp' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         <h4 class="h3 font-bold text-white">3× automotive cameras.</h4>
         <p class="h5 text-gray mt-2">
           Synchronized wide‑angle and long range perception built for automotive‑grade vision.
@@ -458,8 +560,8 @@ title: Kommu
 
       <div class=" fixed-card wide">
         <picture class="w-full block rounded-3xl">
-          <source media="(max-width: 768px)" srcset="{{ '/img/main/hw3-portrait.png' | relative_url }}">
-          <img src="{{ '/img/main/hw3.png' | relative_url }}" alt="Cool by design" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+          <source media="(max-width: 768px)" data-srcset="{{ '/img/main/hw3-portrait.webp' | relative_url }}">
+          <img data-src="{{ '/img/main/hw3.webp' | relative_url }}" alt="Cool by design" class="w-full mb-4 rounded-3xl" width="2160" height="1350" loading="lazy" decoding="async">
         </picture>
         <h4 class="h3 font-bold text-white">Cool by design.</h4>
         <p class="h5 text-gray mt-2">
@@ -468,7 +570,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/hw4.png' | relative_url }}" alt="Sleek curves" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+        <img data-src="{{ '/img/main/hw4.webp' | relative_url }}" alt="Sleek curves" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         <h4 class="h3 font-bold text-white">Sleek curves.</h4>
         <p class="h5 text-gray mt-2">
           Fanless, screenless module that tucks behind the mirror—no clutter, just capability.
@@ -476,7 +578,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/hw5.png' | relative_url }}" alt="Seamless connectivity" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+        <img data-src="{{ '/img/main/hw5.webp' | relative_url }}" alt="Seamless connectivity" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         <h4 class="h3 font-bold text-white">Seamless connectivity.</h4>
         <p class="h5 text-gray mt-2">
           Equipped with LTE, GPS, Wi-Fi, Bluetooth and local storage. Also works with the new KommuAI app.
@@ -505,7 +607,7 @@ title: Kommu
     <div class="carousel-wrap">
       <div class="h-scroll flex flex-nowrap overflow-x-auto overflow-y-visible gap-11 scrollbar-hide full-bleed-row row-align pb-14" id="sw-cards">
       <div class=" fixed-card">
-        <img src="{{ '/img/main/sw1.png' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+        <img data-src="{{ '/img/main/sw1.webp' | relative_url }}" alt="RK3588" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         <h4 class="h3 font-bold text-white">ADAS driving agent.</h4>
         <p class="h5 text-gray mt-2">
           End‑to‑end neural network. Integrated ADAS stack—lateral + longitudinal, driver monitoring and more.
@@ -514,7 +616,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/sw2.png' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+        <img data-src="{{ '/img/main/sw2.webp' | relative_url }}" alt="3x cameras" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         <h4 class="h3 font-bold text-white">Understands the road.</h4>
         <p class="h5 text-gray mt-2">
           Smart enough to slow for curves, spot traffic lights, and speed bumps.
@@ -523,8 +625,8 @@ title: Kommu
 
       <div class=" fixed-card wide">
         <picture class="w-full block rounded-3xl">
-          <source media="(max-width: 768px)" srcset="{{ '/img/main/sw3-portrait.png' | relative_url }}">
-          <img src="{{ '/img/main/sw3.png' | relative_url }}" alt="Kommunity" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+          <source media="(max-width: 768px)" data-srcset="{{ '/img/main/sw3-portrait.webp' | relative_url }}">
+          <img data-src="{{ '/img/main/sw3.webp' | relative_url }}" alt="Kommunity" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         </picture>
         <h4 class="h3 font-bold text-white">Driven by Kommunity.</h4>
         <p class="h5 text-gray mt-2">
@@ -533,7 +635,7 @@ title: Kommu
       </div>
 
       <div class=" fixed-card">
-        <img src="{{ '/img/main/sw4.png' | relative_url }}" alt="Mounts like magic" class="w-full mb-4 rounded-3xl" loading="lazy" fetchpriority="low" decoding="async">
+        <img data-src="{{ '/img/main/sw4.webp' | relative_url }}" alt="Mounts like magic" class="w-full mb-4 rounded-3xl" width="1080" height="1350" loading="lazy" decoding="async">
         <h4 class="h3 font-bold text-white">Safety‑focused.</h4>
         <p class="h5 text-gray mt-2">
           Observed ISO26262 Functional Safety Standard & MISRA C code compliant.
@@ -561,12 +663,12 @@ title: Kommu
       >Check Car Models</a>
       <div class="flex flex-wrap justify-center gap-x-12 gap-y-8 mx-auto max-w-[720px] brand-logos-grid">
         <!-- logos -->
-        <img src="{{ '/img/main/perodua.png' | relative_url }}" alt="Perodua" class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
-        <img src="{{ '/img/main/proton.png'  | relative_url }}" alt="Proton"  class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
-        <img src="{{ '/img/main/honda.png'   | relative_url }}" alt="Honda"   class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
-        <img src="{{ '/img/main/toyota.png'  | relative_url }}" alt="Toyota"  class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
-        <img src="{{ '/img/main/byd.png'     | relative_url }}" alt="BYD"     class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
-        <img src="{{ '/img/main/lexus.png'   | relative_url }}" alt="Lexus"   class="brand-logo object-contain"  loading="lazy" fetchpriority="low" decoding="async" />
+        <img data-src="{{ '/img/main/perodua.png' | relative_url }}" alt="Perodua" class="brand-logo object-contain"  loading="lazy" decoding="async" />
+        <img data-src="{{ '/img/main/proton.png'  | relative_url }}" alt="Proton"  class="brand-logo object-contain"  loading="lazy" decoding="async" />
+        <img data-src="{{ '/img/main/honda.png'   | relative_url }}" alt="Honda"   class="brand-logo object-contain"  loading="lazy" decoding="async" />
+        <img data-src="{{ '/img/main/toyota.png'  | relative_url }}" alt="Toyota"  class="brand-logo object-contain"  loading="lazy" decoding="async" />
+        <img data-src="{{ '/img/main/byd.png'     | relative_url }}" alt="BYD"     class="brand-logo object-contain"  loading="lazy" decoding="async" />
+        <img data-src="{{ '/img/main/lexus.png'   | relative_url }}" alt="Lexus"   class="brand-logo object-contain"  loading="lazy" decoding="async" />
       </div>
       <div class="mt-8 hidden sm:grid grid-cols-2 md:grid-cols-4 gap-10 text-left text-sm">
         <div>
@@ -791,4 +893,25 @@ title: Kommu
 
   document.querySelectorAll('.carousel-wrap').forEach(bindScrollButtons);
 })();
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('fade-up');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.hardware-section, .software-section').forEach(section => {
+      section.querySelectorAll('.h1, .h2, .h3, .h4, button, .h5').forEach(el => {
+        el.classList.add('fade-up-target');
+        observer.observe(el);
+      });
+    });
+  });
 </script>
