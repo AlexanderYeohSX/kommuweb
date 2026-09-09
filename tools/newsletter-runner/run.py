@@ -34,6 +34,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent
 TEMPLATES = ROOT / "templates"
+LOGS = ROOT / "logs"
 SEQUENCE_FILE = ROOT / "newsletter_sequence.yaml"
 if not SEQUENCE_FILE.exists():
     SEQUENCE_FILE = ROOT.parent.parent / "_data" / "newsletter_sequence.yaml"
@@ -148,6 +149,34 @@ def render_template(step_id: str, name: str, email: str = "") -> tuple[str, str]
     return html, text
 
 
+def daily_send_path() -> Path:
+    LOGS.mkdir(exist_ok=True)
+    return LOGS / f"sends-{datetime.now(MYT).strftime('%Y-%m-%d')}.count"
+
+
+def daily_send_count() -> int:
+    path = daily_send_path()
+    if not path.exists():
+        return 0
+    try:
+        return int(path.read_text().strip() or "0")
+    except ValueError:
+        return 0
+
+
+def record_daily_send() -> int:
+    count = daily_send_count() + 1
+    daily_send_path().write_text(f"{count}\n")
+    return count
+
+
+def max_sends_per_day(env: dict) -> int:
+    raw = (env.get("MAX_SENDS_PER_DAY") or "").strip()
+    if not raw:
+        return 0
+    return int(raw)
+
+
 def send_email(env: dict, to: str, subject: str, html: str, text: str) -> None:
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
@@ -216,7 +245,14 @@ def main() -> None:
 
     now = datetime.now(timezone.utc)
     sent_count = 0
+    daily_cap = max_sends_per_day(env)
+    already_today = daily_send_count()
+    if daily_cap and already_today >= daily_cap:
+        print(f"Reached MAX_SENDS_PER_DAY={daily_cap} ({already_today} sent today)")
+        print("Done. Sent 0 email(s).")
+        return
 
+    due = []
     for idx, row in enumerate(rows[1:], start=2):
         rec = row_to_dict(HEADERS, row)
         email = rec["email"].strip().lower()
@@ -236,12 +272,24 @@ def main() -> None:
         if now < due_at.astimezone(timezone.utc):
             continue
 
+        due.append((step_num, due_at, idx, rec, step, next_step))
+
+    # Prefer earlier drip steps when the daily cap will cut the queue short.
+    due.sort(key=lambda item: (item[0], item[1], item[2]))
+
+    for step_num, _due_at, idx, rec, step, next_step in due:
+        email = rec["email"].strip().lower()
         name = rec["name"]
         html, text = render_template(step["id"], name, email)
         subject = step["subject"]
 
+        if daily_cap and daily_send_count() >= daily_cap:
+            print(f"Reached MAX_SENDS_PER_DAY={daily_cap}")
+            break
+
         print(f"Sending step {next_step} ({step['id']}) to {email}")
         send_email(env, email, subject, html, text)
+        today_total = record_daily_send()
 
         iso_now = datetime.now(MYT).strftime(MYT_DATETIME_FMT)
         new_status = "completed" if next_step >= len(sequence) else "active"
@@ -255,6 +303,9 @@ def main() -> None:
         dry_run_limit = int(env.get("MAX_SENDS_PER_RUN", "50"))
         if sent_count >= dry_run_limit:
             print(f"Reached MAX_SENDS_PER_RUN={dry_run_limit}")
+            break
+        if daily_cap and today_total >= daily_cap:
+            print(f"Reached MAX_SENDS_PER_DAY={daily_cap}")
             break
 
     print(f"Done. Sent {sent_count} email(s).")

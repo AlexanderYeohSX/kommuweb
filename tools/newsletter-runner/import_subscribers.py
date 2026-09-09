@@ -12,7 +12,7 @@ from sheet_store import load_dotenv, upsert_subscriber
 def main() -> None:
     parser = argparse.ArgumentParser(description="Import emails into Newsletter sheet")
     parser.add_argument("--csv", required=True, help="CSV with email and optional name columns")
-    parser.add_argument("--source", default="import", choices=["import", "checkout", "homepage"])
+    parser.add_argument("--source", default="import")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 

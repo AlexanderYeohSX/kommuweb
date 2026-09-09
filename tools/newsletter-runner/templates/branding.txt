@@ -1,14 +1,12 @@
 Hi {{name}},
 
-Thanks for subscribing — welcome to Kommunity.
+Welcome to Kommunity.
 
-These probably sound familiar: highway commutes, stop-and-go city traffic, long road trips, and the same school or office run, week after week. Tiring drives — but ones most of us take every day. For Malaysian folks — stuck in KL traffic on a weekday, or crawling bumper-to-bumper on the highway when everyone's heading home for the festivities — you know what we mean.
+Highway commutes, stop-and-go city traffic, long road trips, the same school or office run — tiring drives most of us take every day. In Malaysia that's KL traffic on a weekday, or bumper-to-bumper on the highway when everyone's heading home for the festivities.
 
-That's why we built KommuAssist 2 — not to change the car you love, but to make those drives a little easier. AI-powered cruise makes your long hour trip more relaxed and safer. Lane keeping when your focus wears thin after a long day. Same car, same roads — just a calmer ride when you need it.
+That's why we built KommuAssist 2 — not to change the car you love, but to make those drives easier. AI-powered cruise for a more relaxed, safer long-hour trip. Lane keeping when your focus wears thin after a long day. Same car, same roads — a calmer ride when you need it.
 
-At the heart of it all is bukapilot, an open-source AI driving model built upon openpilot. Trained with 100M+ miles of real-world driving data of a global community.
-
-And you can see it on the road. Every month, Kommunity members navigate more than 360,000 minutes peacefully to their destinations — 6.77 million km travelled to date, each journey helping the stack get a little sharper for everyone.
+At the heart of it is bukapilot, an open-source AI driving model built upon openpilot and trained on 100M+ miles of real-world driving from a global community. You can see it on the road: Kommunity members log more than 360,000 minutes every month — 6.77 million km to date — and each journey helps the stack get a little sharper for everyone.
 
 Whether you're curious, already driving with us, or just watching from the sidelines — we're glad you're here.
 

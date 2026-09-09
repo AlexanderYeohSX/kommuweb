@@ -40,7 +40,7 @@ HEADERS = [
 ]
 
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
-ALLOWED_SOURCES = frozenset({"homepage", "checkout", "import"})
+ALLOWED_SOURCES = frozenset({"homepage", "checkout", "import", "payment gateway"})
 
 
 def load_dotenv() -> None:

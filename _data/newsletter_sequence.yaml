@@ -10,29 +10,29 @@
 - step: 2
   id: product_features
   delay_days: 2
-  subject: "What KommuAssist can do for your daily drive"
+  subject: "Make Your Car Smarter with KommuAssist"
   preview: "Level 2 assist, lane keeping, adaptive cruise, and more."
 
 - step: 3
   id: use_cases
   delay_days: 2
-  subject: "Real drivers, real commutes — how KommuAssist helps"
+  subject: "Upgrade Your Daily Drive with KommuAssist"
   preview: "Highway trips, traffic jams, and long-distance comfort."
 
 - step: 4
   id: product_background
-  delay_days: 3
+  delay_days: 2
   subject: "Built in Malaysia, for Malaysian roads"
   preview: "Our story from open-source roots to KommuAssist 2."
 
 - step: 5
   id: hardware_specs
-  delay_days: 3
-  subject: "Inside the KommuAssist kit — hardware overview"
+  delay_days: 2
+  subject: "KommuAssist: Designed for performance, built with reliability"
   preview: "Cameras, compute, harness, and what ships in the box."
 
 - step: 6
   id: technical_info
-  delay_days: 4
-  subject: "Technical deep dive — specs, safety, and compatibility"
+  delay_days: 2
+  subject: "Is Your Car Supported by KommuAssist?"
   preview: "CAN integration, supported models, and safety standards."

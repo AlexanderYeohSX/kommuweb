@@ -1175,7 +1175,7 @@ stylesheet: products
     .inside-section {
       position: relative;
       max-width: 1100px;
-      margin: 6rem auto 0;
+      margin: calc(var(--vh, 1vh) * 10) auto 0;
       color: #eaeaea;
       /* Tall track so sticky child can pin while scrubbing */
       height: calc(var(--vh, 1vh) * 360);
@@ -1195,7 +1195,7 @@ stylesheet: products
       justify-content: flex-start;
       overflow: hidden;
       z-index: 2;
-      padding: clamp(1.25rem, 3vh, 2.25rem) clamp(1.25rem, 4vw, 3.5rem) 1.25rem;
+      padding: 4.5rem 0 1.25rem;
       box-sizing: border-box;
       background: #000;
       isolation: isolate;
@@ -1205,7 +1205,7 @@ stylesheet: products
       width: 100%;
       z-index: 5;
       flex: 0 0 auto;
-      padding: 0;
+      padding: 1rem 0;
       position: relative;
       align-self: start;
     }
@@ -1215,7 +1215,7 @@ stylesheet: products
     }
 
     .inside-header p {
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
     }
 
     .inside-stage {
@@ -1333,6 +1333,16 @@ stylesheet: products
       transform: translate(0%, -50%) translateY(0);
     }
 
+    .inside-label.is-below {
+      text-align: center;
+      transform: translate(-50%, 0) translateY(6px);
+    }
+
+    .inside-label.is-below.in {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     .inside-label .inside-label-sub {
       display: block;
       font-size: 0.92em;
@@ -1341,73 +1351,55 @@ stylesheet: products
       margin-top: 0.05rem;
     }
 
-    .inside-scroll-cue {
-      position: absolute;
-      left: 50%;
-      bottom: clamp(0.6rem, 2vh, 1.25rem);
-      width: 1px;
-      height: clamp(2rem, 5.5vh, 3.25rem);
-      transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.28);
-      pointer-events: none;
-      z-index: 4;
-    }
-
     @media (max-width: 768px) {
       .inside-section {
         height: calc(var(--vh, 1vh) * 300);
         min-height: calc(var(--vh, 1vh) * 300);
-        margin-top: 3rem;
-        padding-left: 0.55rem !important;
-        padding-right: 0.55rem !important;
       }
 
       .inside-sticky {
         /* Clear the floating KommuAssist 2 / View pricing bar */
-        padding: calc(env(safe-area-inset-top, 0px) + 5.15rem) 0.35rem 0.7rem;
+        padding: calc(env(safe-area-inset-top, 0px) + 4.2rem) 0 0.5rem;
         overflow: visible;
       }
 
       .inside-header {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
         max-width: 100%;
-        padding: 0 0.25rem;
-      }
-
-      .inside-header .section-eyebrow,
-      .inside-header .h3.section-eyebrow {
-        font-size: 0.72rem !important;
-        line-height: 1.2 !important;
-        margin-bottom: 0.1rem !important;
+        padding: 0;
+        z-index: 5;
       }
 
       .inside-header h2,
       .inside-header h2.h1,
       .inside-header h2.section-title {
-        font-size: clamp(1.28rem, 5.6vw, 1.55rem) !important;
-        line-height: 1.12 !important;
-        margin-bottom: 0.28rem !important;
+        margin-bottom: 0.45rem;
       }
 
       .inside-header p,
-      .inside-header p.h4,
-      .inside-header p .h4 {
-        font-size: 0.7rem !important;
-        line-height: 1.32 !important;
-        margin-bottom: 0.3rem !important;
-        white-space: normal !important;
-        max-width: 100%;
+      .inside-header p.h4 {
+        margin-bottom: 0.65rem;
       }
 
       .inside-stage {
         overflow: visible;
         width: 100%;
+        height: auto;
+        min-height: 0;
+        /* Sit the explode just under the caption, not over it */
+        place-items: start center;
+        padding-top: 0.15rem;
       }
 
       .inside-media {
-        width: min(58%, 360px);
-        max-width: 58%;
-        max-height: min(56dvh, 480px);
+        width: min(94%, 460px);
+        max-width: 94%;
+        max-height: min(68dvh, 560px);
         overflow: visible;
+        transform: none;
       }
 
       .inside-overlay,
@@ -1416,41 +1408,40 @@ stylesheet: products
       }
 
       .inside-label {
-        font-size: 0.68rem;
+        font-size: 0.8rem;
+        letter-spacing: 0.02em;
         white-space: normal;
-        max-width: 6.4rem;
-        line-height: 1.15;
+        max-width: 5.6rem;
+        line-height: 1.2;
         word-break: normal;
         overflow-wrap: break-word;
         hyphens: none;
       }
 
       #il-rockchip {
-        max-width: 4.4rem;
+        max-width: 5.6rem;
       }
 
-      /* Aluminium Unibody: 2 lines on phone */
+      /* ASA UV resistant Case: wrap instead of running off-screen */
+      #il-asa .inside-label-sub,
       #il-case .inside-label-sub {
         display: block;
       }
 
-      /* 185 FOV: exactly 2 lines — Automotive Grade / 185 FOV Camera */
-      #il-cams {
-        max-width: none;
-        white-space: nowrap;
+      /* 45 / 185 FOV: wrap Automotive Grade Camera */
+      #il-cam45 {
+        max-width: 5.6rem;
+        white-space: normal;
+        text-align: center;
       }
+      #il-cam45 .inside-label-sub,
       #il-cams .inside-label-sub {
         display: block;
-        white-space: nowrap;
+        white-space: normal;
       }
 
       .inside-lines line {
         stroke-width: 1.1;
-      }
-
-      .inside-scroll-cue {
-        height: 1.25rem;
-        bottom: 0.35rem;
       }
     }
 
@@ -1466,7 +1457,7 @@ stylesheet: products
         max-width: 4.4rem;
       }
 
-      /* 45 / 185 FOV: 2 lines — Automotive Grade / N FOV Camera */
+      /* 45 / 185 FOV: 2 lines — N° FOV / Automotive Grade Camera */
       #il-cam45,
       #il-cams {
         max-width: none;
@@ -1503,6 +1494,12 @@ stylesheet: products
         transition: none;
         opacity: 1;
         transform: translate(0%, -50%);
+      }
+      .inside-label.is-below,
+      .inside-label.is-below.in {
+        transition: none;
+        opacity: 1;
+        transform: translate(-50%, 0);
       }
     }
 
@@ -1886,7 +1883,7 @@ document.addEventListener('DOMContentLoaded', function(){
         el.closest('.frame-section') ||
         el.closest('.perception-tabs-section') ||
         el.closest('.safety-tab') ||
-        el.closest('.inside-section') ||
+        el.closest('.inside-overlay') ||
         el.closest('.fixed') ||
         el.closest('.footer') ||
         el.closest('.summary-section')
@@ -2134,6 +2131,62 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
   </section>
+
+  <!-- INSIDE / EXPLODE (scroll-scrubbed) -->
+  <section class="inside-section" id="inside" data-pin-vh="360"
+           aria-label="KommuAssist internal hardware explode">
+      <div class="inside-sticky">
+        <div class="inside-header">
+          <div class="h3 section-eyebrow">Inside</div>
+          <h2 class="h1 section-title">Designed from within.</h2>
+          <p class="h4 font-bold text-gray text-left">
+            <span class="h4 font-bold text-white">An 8nm 8-core CPU and Mali-G610 GPU, with 4GB LPDDR4X and 32GB eMMC.</span>
+            Runs Ubuntu 22.04 and three CAN FD buses for low-latency control between the model and the vehicle.
+          </p>
+        </div>
+
+        <div class="inside-stage">
+          <div class="inside-media" id="insideMedia"
+               data-frames="60"
+               data-desktop-prefix="{{ '/assets/ka2_explode_seq/d_' | relative_url }}"
+               data-mobile-prefix="{{ '/assets/ka2_explode_seq/m_' | relative_url }}"
+               data-desktop-poster="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
+               data-mobile-poster="{{ '/assets/ka2_explode_mobile_poster.png' | relative_url }}"
+               data-ext=".jpg">
+            <canvas id="insideCanvas" class="inside-canvas" width="1440" height="1440"
+                    aria-label="KommuPilot explode animation"></canvas>
+            <img id="insidePoster" class="inside-poster"
+                 src="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
+                 alt="" decoding="async" />
+
+            <svg class="inside-lines" id="insideLines" aria-hidden="true"></svg>
+
+            <!-- Coordinates for open frame (60-frame seq); JS CONTACT overrides these. -->
+            <div class="inside-overlay" aria-hidden="true">
+              <span class="inside-label is-left" id="il-can"
+                    style="left:16%; top:33%;"
+                    data-from="0.58" data-ax="36.5" data-ay="33.5">CAN FD<span class="inside-label-sub">Microcontroller</span></span>
+              <span class="inside-label is-left" id="il-case"
+                    style="left:16%; top:56%;"
+                    data-from="0.58" data-ax="33.5" data-ay="56.5">Aluminium<span class="inside-label-sub">Unibody</span></span>
+              <span class="inside-label is-left" id="il-cam45"
+                    style="left:12%; top:80.5%;"
+                    data-from="0.58" data-ax="18" data-ay="80.5">45° FOV<span class="inside-label-sub">Automotive Grade Camera</span></span>
+              <span class="inside-label is-right" id="il-asa"
+                    style="left:71%; top:28%;"
+                    data-from="0.58" data-ax="58" data-ay="28.5">ASA UV resistant<span class="inside-label-sub">Case</span></span>
+              <span class="inside-label is-right" id="il-rockchip"
+                    style="left:71%; top:52%;"
+                    data-from="0.58" data-ax="57.5" data-ay="52.5">6 TOPS<span class="inside-label-sub">Rockchip RK3588</span></span>
+              <span class="inside-label is-right" id="il-cams"
+                    style="left:70%; top:85%;"
+                    data-from="0.58" data-ax="52.8" data-ay="85.5">185° FOV<span class="inside-label-sub">Automotive Grade Camera</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+
   <!-- SAFETY (tabs + looped video) -->
   <section class="safety-section" id="safety">
     <div class="module-content s3-content-height">
@@ -2304,62 +2357,6 @@ document.addEventListener('DOMContentLoaded', function(){
             </div>
           </figure>
         </div>
-      </div>
-  </section>
-
-  <!-- INSIDE / EXPLODE (scroll-scrubbed, under Ports) -->
-  <section class="inside-section" id="inside" data-pin-vh="360"
-           aria-label="KommuAssist internal hardware explode">
-      <div class="inside-sticky">
-        <div class="inside-header">
-          <div class="h3 section-eyebrow">Inside</div>
-          <h2 class="h1 section-title">Designed from the core.</h2>
-          <p class="h4 font-bold text-gray text-left">
-            <span class="h4 font-bold text-white">An 8nm 8-core CPU and Mali-G610 GPU, with 4GB LPDDR4X and 128GB eMMC.</span>
-            Runs Ubuntu 22.04 and three CAN FD buses for low-latency control between the model and the vehicle.
-          </p>
-        </div>
-
-        <div class="inside-stage">
-          <div class="inside-media" id="insideMedia"
-               data-frames="60"
-               data-desktop-prefix="{{ '/assets/ka2_explode_seq/d_' | relative_url }}"
-               data-mobile-prefix="{{ '/assets/ka2_explode_seq/m_' | relative_url }}"
-               data-desktop-poster="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
-               data-mobile-poster="{{ '/assets/ka2_explode_mobile_poster.png' | relative_url }}"
-               data-ext=".jpg">
-            <canvas id="insideCanvas" class="inside-canvas" width="1440" height="1440"
-                    aria-label="KommuPilot explode animation"></canvas>
-            <img id="insidePoster" class="inside-poster"
-                 src="{{ '/assets/ka2_explode_desktop_poster.png' | relative_url }}"
-                 alt="" decoding="async" />
-
-            <svg class="inside-lines" id="insideLines" aria-hidden="true"></svg>
-
-            <!-- Coordinates for open frame (60-frame seq); JS CONTACT overrides these. -->
-            <div class="inside-overlay" aria-hidden="true">
-              <span class="inside-label is-left" id="il-can"
-                    style="left:16%; top:33%;"
-                    data-from="0.58" data-ax="36.5" data-ay="33.5">CAN Microcontroller</span>
-              <span class="inside-label is-left" id="il-case"
-                    style="left:16%; top:56%;"
-                    data-from="0.58" data-ax="33.5" data-ay="56.5">Aluminium<span class="inside-label-sub">Unibody</span></span>
-              <span class="inside-label is-left" id="il-cam45"
-                    style="left:12%; top:80.5%;"
-                    data-from="0.58" data-ax="18" data-ay="80.5">Automotive Grade<span class="inside-label-sub">45 FOV Camera</span></span>
-              <span class="inside-label is-right" id="il-pcb"
-                    style="left:71%; top:39.5%;"
-                    data-from="0.58" data-ax="62" data-ay="39.5">PCB</span>
-              <span class="inside-label is-right" id="il-rockchip"
-                    style="left:71%; top:52%;"
-                    data-from="0.58" data-ax="57.5" data-ay="52.5">Rockchip RK3588<span class="inside-label-sub">6 TOPS</span></span>
-              <span class="inside-label is-right" id="il-cams"
-                    style="left:70%; top:85%;"
-                    data-from="0.58" data-ax="52.8" data-ay="85.5">Automotive Grade<span class="inside-label-sub">185 FOV Camera</span></span>
-            </div>
-          </div>
-        </div>
-        <div class="inside-scroll-cue" aria-hidden="true"></div>
       </div>
   </section>
 
@@ -3268,14 +3265,14 @@ document.addEventListener('DOMContentLoaded', function(){
         if (sr.width < 2 || sr.height < 2) return;
 
         const band = window.innerWidth <= 768 ? 'phone' : (window.innerWidth <= 1100 ? 'tablet' : 'desktop');
-        // Phone ~58% leaves gutters for tagboxes (red mockup); tablet ~72% for longer leaders
+        // Phone uses most of the stage so the unit reads larger; labels still overflow visibly
         const maxW = Math.min(
-          sr.width * (band === 'phone' ? 0.58 : band === 'tablet' ? 0.72 : 0.98),
-          band === 'phone' ? 360 : band === 'tablet' ? 640 : 920
+          sr.width * (band === 'phone' ? 0.92 : band === 'tablet' ? 0.72 : 0.98),
+          band === 'phone' ? 460 : band === 'tablet' ? 640 : 920
         );
         const maxH = Math.min(
-          sr.height * (band === 'phone' ? 0.94 : 0.98),
-          band === 'phone' ? 480 : band === 'tablet' ? 560 : 820
+          sr.height * (band === 'phone' ? 0.98 : 0.98),
+          band === 'phone' ? 620 : band === 'tablet' ? 560 : 820
         );
         let w = maxW;
         let h = w / ar;
@@ -3310,25 +3307,25 @@ document.addEventListener('DOMContentLoaded', function(){
         'il-can': { ax: 36.5, ay: 33.5, lineLen: 14, tipClearPx: 12, textGapPx: 8, textNudgeYPct: -0.45 },
         'il-case': { ax: 33.5, ay: 56.5, lineLen: 11, tipClearPx: 10, textGapPx: 8 },
         'il-cam45': { ax: 18.0, ay: 80.5, lineLen: 11, tipClearPx: 14, textGapPx: 8 },
-        'il-pcb': { ax: 62.0, ay: 39.5, lineLen: 18, tipClearPx: 28, textGapPx: 12 },
+        'il-asa': { ax: 58.0, ay: 28.5, lineLen: 16, tipClearPx: 14, textGapPx: 12 },
         'il-rockchip': { ax: 57.5, ay: 52.5, lineLen: 24, tipClearPx: 14, textGapPx: 12 },
         'il-cams': { ax: 52.8, ay: 85.5, lineLen: 18, textGapPx: 0, textOffsetPct: 2 },
       };
       // Pinned from red mockup — tips/boxes measured vs m_60 (phone) / d_60 (tablet) media box
       const CONTACT_PHONE = {
-        // textGapPx 8 (CAN). textX + ax shift together so leader length stays fixed.
-        'il-can':      { ax: 22.9, ay: 34.5, textX: 4.4, textY: 35.0, textGapPx: 8, side: 'left' },
-        'il-case':     { ax: 25.1, ay: 54.9, textX: -8.0, textY: 55.1, textGapPx: 8, side: 'left' },
-        'il-cam45':    { ax: 18.1, ay: 86.5, textX: 36.7, textY: 104.0, textGapPx: 8, elbow: 'down-right', side: 'right' },
-        'il-pcb':      { ax: 72.9, ay: 36.5, textX: 107.0, textY: 36.2, textGapPx: 8, side: 'right' },
-        'il-rockchip': { ax: 62.9, ay: 53.3, textX: 91.7, textY: 53.1, textGapPx: 8, side: 'right' },
-        'il-cams':     { ax: 55.9, ay: 87.2, textX: 80.0, textY: 87.8, textGapPx: 8, side: 'right' },
+        // Tips sit on the part (ASA lid is the reference). Labels stay in the gutters.
+        'il-can':      { ax: 41.5, ay: 34.2, textX: 18.0, textY: 34.2, textGapPx: 8, side: 'left' },
+        'il-case':     { ax: 36.5, ay: 52.2, textX: 18.0, textY: 52.2, textGapPx: 8, side: 'left' },
+        'il-cam45':    { ax: 21.5, ay: 87.8, textX: 21.5, textY: 107.0, textGapPx: 8, elbow: 'down' },
+        'il-asa':      { ax: 62.0, ay: 22.5, textX: 80.0, textY: 22.5, textGapPx: 8, side: 'right' },
+        'il-rockchip': { ax: 56.5, ay: 49.8, textX: 80.0, textY: 49.8, textGapPx: 8, side: 'right' },
+        'il-cams':     { ax: 53.2, ay: 83.8, textX: 78.0, textY: 83.8, textGapPx: 8, side: 'right' },
       };
       const CONTACT_TABLET = {
         'il-can':      { ax: 30.5, ay: 34.8, textX: 11.7, textY: 34.8, side: 'left' },
         'il-case':     { ax: 32.1, ay: 54.4, textX: 10.6, textY: 54.4, side: 'left' },
         'il-cam45':    { ax: 21.9, ay: 86.5, textX: 27.6, textY: 99.9, elbow: 'down-right', side: 'right' },
-        'il-pcb':      { ax: 67.5, ay: 37.6, textX: 83.2, textY: 37.6, side: 'right' },
+        'il-asa':      { ax: 62.0, ay: 24.0, textX: 83.2, textY: 24.0, side: 'right' },
         'il-rockchip': { ax: 60.1, ay: 52.8, textX: 85.5, textY: 52.8, side: 'right' },
         'il-cams':     { ax: 55.4, ay: 85.1, textX: 73.0, textY: 85.1, side: 'right' },
       };
@@ -3385,33 +3382,54 @@ document.addEventListener('DOMContentLoaded', function(){
 
           // Phone / tablet pinned layout (from red mockup)
           if (c.textX != null) {
-            const textX = c.textX;
+            let textX = c.textX;
             const textY = c.textY != null ? c.textY : ay;
-            // Gap between tagtext edge and tagline end — default 8 matches CAN
             const pinGapPx = c.textGapPx != null ? c.textGapPx : 8;
             const gap = (pinGapPx / mr.width) * 100;
-            const lineToTextX = isLeft ? textX + gap : textX - gap;
             label.dataset.ax = String(ax);
             label.dataset.ay = String(ay);
-            label.style.left = textX.toFixed(2) + '%';
 
+            const pinLeft = (x, leftSide) => {
+              label.style.left = x.toFixed(2) + '%';
+              label.style.transform = leftSide ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
+              const pad = 10;
+              const lr = label.getBoundingClientRect();
+              let dxPx = 0;
+              if (lr.left < pad) dxPx += pad - lr.left;
+              if (lr.right > vw - pad) dxPx -= lr.right - (vw - pad);
+              if (dxPx) {
+                x += (dxPx / mr.width) * 100;
+                label.style.left = x.toFixed(2) + '%';
+              }
+              return x;
+            };
+
+            if (c.elbow === 'down') {
+              label.classList.add('is-below');
+              label.classList.remove('is-left', 'is-right');
+              label.style.left = ax.toFixed(2) + '%';
+              label.style.top = textY.toFixed(2) + '%';
+              label.style.transform = 'translate(-50%, 0)';
+              const gapY = (pinGapPx / Math.max(1, mr.height)) * 100;
+              addLine(ax, ay, ax, textY - gapY);
+              addDot(ax, ay);
+              return;
+            }
             if (c.elbow === 'down-left') {
-              // tip → down → left → text (gap before text)
               label.classList.add('is-left');
               label.classList.remove('is-right');
-              label.style.transform = 'translate(-100%, -50%)';
               label.style.top = textY.toFixed(2) + '%';
+              textX = pinLeft(textX, true);
               addLine(ax, ay, ax, textY);
               addLine(ax, textY, textX + gap, textY);
               addDot(ax, ay);
               return;
             }
             if (c.elbow === 'right-down') {
-              // tip → right → down → text (gap before text)
               label.classList.add('is-right');
               label.classList.remove('is-left');
-              label.style.transform = 'translate(0, -50%)';
               label.style.top = textY.toFixed(2) + '%';
+              textX = pinLeft(textX, false);
               const elbowX = textX - gap;
               addLine(ax, ay, elbowX, ay);
               addLine(elbowX, ay, elbowX, textY);
@@ -3421,8 +3439,8 @@ document.addEventListener('DOMContentLoaded', function(){
             if (c.elbow === 'down-right') {
               label.classList.add('is-right');
               label.classList.remove('is-left');
-              label.style.transform = 'translate(0, -50%)';
               label.style.top = textY.toFixed(2) + '%';
+              textX = pinLeft(textX, false);
               addLine(ax, ay, ax, textY);
               addLine(ax, textY, textX - gap, textY);
               addDot(ax, ay);
@@ -3431,13 +3449,13 @@ document.addEventListener('DOMContentLoaded', function(){
 
             // Straight horizontal
             if (isLeft) {
-              label.style.transform = 'translate(-100%, -50%)';
               label.style.top = ay.toFixed(2) + '%';
-              addLine(lineToTextX, ay, ax, ay);
+              textX = pinLeft(textX, true);
+              addLine(textX + gap, ay, ax, ay);
             } else {
-              label.style.transform = 'translate(0, -50%)';
               label.style.top = ay.toFixed(2) + '%';
-              addLine(ax, ay, lineToTextX, ay);
+              textX = pinLeft(textX, false);
+              addLine(ax, ay, textX - gap, ay);
             }
             addDot(ax, ay);
             return;
@@ -3523,9 +3541,15 @@ document.addEventListener('DOMContentLoaded', function(){
           }
           el.dataset.ax = String(CONTACT[el.id].ax);
           el.dataset.ay = String(CONTACT[el.id].ay);
-          const side = CONTACT[el.id].side || el.dataset.sideDefault || 'right';
-          el.classList.toggle('is-left', side === 'left');
-          el.classList.toggle('is-right', side !== 'left');
+          if (CONTACT[el.id].elbow === 'down') {
+            el.classList.add('is-below');
+            el.classList.remove('is-left', 'is-right');
+          } else {
+            el.classList.remove('is-below');
+            const side = CONTACT[el.id].side || el.dataset.sideDefault || 'right';
+            el.classList.toggle('is-left', side === 'left');
+            el.classList.toggle('is-right', side !== 'left');
+          }
         });
         if (poster) {
           const useMobileFrames = band !== 'desktop' && (mobileMq.matches || activeMobile || band === 'phone');
