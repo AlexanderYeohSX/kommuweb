@@ -2112,8 +2112,10 @@ document.addEventListener('DOMContentLoaded', function(){
           <div class="h3 section-eyebrow">Performance</div>
           <h2 class="h1 section-title">Stronger. Faster.</h2>
         </div>
-        <video id="s2Video" class="s2-video scroll-video" playsinline muted preload="none" data-autoplay="true"
-          data-play-once="true" aria-label="KommuAssist unit performance highlight animation">
+        <video id="s2Video" class="s2-video scroll-video" playsinline muted preload="none"
+          data-autoplay="true" data-play-once="true" data-wait-loaded="true"
+          poster="{{ '/assets/ka_ani_s2_1_poster.webp' | relative_url }}"
+          aria-label="KommuAssist unit performance highlight animation">
         </video>
         <script>
           (function () {
@@ -2123,13 +2125,66 @@ document.addEventListener('DOMContentLoaded', function(){
               "{{ '/assets/ka_ani_s2_1.webm' | relative_url }}?v=orig",
               "{{ '/assets/ka_ani_s2_1.mp4'  | relative_url }}?v=orig"
             );
-            KA2Media.whenNear(v.closest('section') || v, '35% 0px', function () {
-              KA2Media.fillVideo(v, sources, { preload: 'auto' });
-              var onReady = function () { v.style.opacity = '1'; v.removeEventListener('canplay', onReady); };
-              v.addEventListener('canplay', onReady, { once: true });
+
+            function onScreen() {
+              var r = v.getBoundingClientRect();
+              var vh = window.innerHeight || 0;
+              return r.top < vh * 0.9 && r.bottom > vh * 0.1;
+            }
+
+            function playLoaded() {
+              if (v.dataset.played === 'true') return;
+              if (v.dataset.loaded !== 'true') return;
+              if (!onScreen()) return;
               v.muted = true;
               v.playsInline = true;
               v.play().catch(function () {});
+            }
+
+            function markLoaded() {
+              v.dataset.loaded = 'true';
+              v.style.opacity = '1';
+              playLoaded();
+            }
+
+            function waitUntilBuffered(done) {
+              var finished = false;
+              var check = function () {
+                if (finished) return;
+                var d = v.duration;
+                if (!d || !isFinite(d) || !v.buffered.length) return;
+                if (v.buffered.end(v.buffered.length - 1) >= d - 0.05) {
+                  finished = true;
+                  done();
+                }
+              };
+              v.addEventListener('canplaythrough', function () { if (!finished) { finished = true; done(); } }, { once: true });
+              v.addEventListener('progress', check);
+              v.addEventListener('loadeddata', check);
+              check();
+            }
+
+            function attachAndWait(srcList) {
+              KA2Media.fillVideo(v, srcList, { preload: 'auto' });
+              waitUntilBuffered(markLoaded);
+            }
+
+            KA2Media.whenNear(v.closest('section') || v, '90% 0px', function () {
+              var src = sources[0] && sources[0].src;
+              if (!src) return;
+              v.muted = true;
+              v.playsInline = true;
+              fetch(src).then(function (r) {
+                if (!r.ok) throw new Error('s2 fetch failed');
+                return r.blob();
+              }).then(function (blob) {
+                v.src = URL.createObjectURL(blob);
+                v.preload = 'auto';
+                v.addEventListener('loadeddata', markLoaded, { once: true });
+                try { v.load(); } catch (e) {}
+              }).catch(function () {
+                attachAndWait(sources);
+              });
             });
           })();
         </script>
@@ -2550,6 +2605,8 @@ document.addEventListener('DOMContentLoaded', function(){
         if (e.isIntersecting) {
           // If play-once and we already finished, do nothing
           if (v.dataset.playOnce === "true" && v.dataset.played === "true") return;
+          // Wait for full buffer on clips that stutter if they start early
+          if (v.dataset.waitLoaded === "true" && v.dataset.loaded !== "true") return;
           v.muted = true;
           v.playsInline = true;
           v.play().catch(() => { });
