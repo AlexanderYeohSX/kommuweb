@@ -27,6 +27,10 @@ permalink: pretty
 # Leave empty for local sample data; set to /exec URL after deploying Apps Script.
 installers_api_url: "https://script.google.com/macros/s/AKfycbwLpJuHrljoy_1SmSxcoIkzAk3aEFJu2TIR9jwTKwvfSI1rKBqYQvsIS157zcMYC7D4/exec"
 
+# CARTO basemap API key for the installers Leaflet map (required — free at https://carto.com/basemaps/apikey).
+# Request with domains: kommu.ai, alexanderyeohsx.github.io, localhost. Safe to commit (client-side, domain-locked).
+carto_basemap_api_key: "cb1_34e7_1_1abd1ca25c59fb6e9942992e"
+
 # Newsletter subscribe API — Google Apps Script on KA Inventory (works on all networks).
 newsletter_api_url: "https://script.google.com/macros/s/AKfycbwf8UdZa6f6ez-BsOSB5yoAYya0inyxpcA9XXuxMUYDLii2GhGV6tbbsDx6rRE-fBlE/exec"
 

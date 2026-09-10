@@ -99,6 +99,7 @@ Rows are skipped when not approved, name/state is empty, or lat/lng is missing o
 | Installer still hidden | Check **Executions** in Apps Script for skip reasons. |
 | Wrong columns mapped | Update `COLUMN_MAP` in the script to match sheet headers exactly. |
 | Pin in wrong place | Verify **Latitude** / **Longitude** columns in the sheet. |
+| Map shows “API KEY REQUIRED” watermark | CARTO basemaps need a free key. Request one at [carto.com/basemaps/apikey](https://carto.com/basemaps/apikey) (domains: `kommu.ai`, `alexanderyeohsx.github.io`, `localhost`), put it in `_config.yml` as `carto_basemap_api_key`, rebuild/redeploy. Force-refresh — tiles are cached. |
 
 ## Updating the Script
 
