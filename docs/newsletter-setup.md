@@ -155,7 +155,8 @@ Logs: `logs/newsletter-drip.log`, `logs/subscribe-api.log`
 
 ## 6. Purchasers + import
 
-- **Automatic:** `sync_orders.py` reads **Orders** tab (`ORDERS_SHEET_TAB`, default `Orders`), upserts with `source=checkout`
+- **Automatic (PaymentGateway tab):** Apps Script [`docs/scripts/paymentgateway-to-newsletter.gs`](scripts/paymentgateway-to-newsletter.gs) — add as a **new file** in the existing KA Inventory Apps Script project (do not overwrite `Code.gs`), then run `installPaymentGatewayNewsletterTrigger` once. Every 10 minutes it copies new emails from **PaymentGateway** into **Newsletter** (`source=checkout`), skipping addresses already present. Requires a header column named like `email` / `customer email`. Reuses `SPREADSHEET_ID` / `NEWSLETTER_TAB` / `HEADERS` / `EMAIL_RE` / `mytNow` from the newsletter API already in that project.
+- **Automatic (Orders tab / Athena):** `sync_orders.py` reads **Orders** (`ORDERS_SHEET_TAB`, default `Orders`), upserts with `source=checkout`
 - **One-time CSV:** `python import_subscribers.py --csv customers.csv --source import`
 
 ## 7. Unsubscribe
