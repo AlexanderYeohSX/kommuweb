@@ -37,3 +37,5 @@ social:
     url: https://github.com/kommu/bukapilot
   - title: facebook
     url: https://www.facebook.com/groups/kommu.official
+
+carto_basemap_api_key: "cb1_34e7_1_1abd1ca25c59fb6e9942992e"
