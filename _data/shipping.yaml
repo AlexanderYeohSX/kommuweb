@@ -90,3 +90,9 @@
     MYR: 141.00
     USD: 36.00
 
+- code: VN
+  name: Vietnam
+  rates:
+    MYR: 85.00
+    USD: 21.00
+
