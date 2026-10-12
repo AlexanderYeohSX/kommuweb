@@ -311,6 +311,20 @@ title: Checkout
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    // One-off KA2 uses the cart layout so accessories ship in the same order.
+    const entryParams = new URLSearchParams(location.search);
+    const entryMode = entryParams.get('mode') || entryParams.get('src');
+    if (entryMode === 'product') {
+      let entrySel = null;
+      try { entrySel = JSON.parse(sessionStorage.getItem('checkoutSelections') || 'null'); } catch (_) {}
+      if (entrySel && !/rent-to-own/i.test(entrySel.payment || '')) {
+        if (typeof upsertKa2OneOffLine === 'function') upsertKa2OneOffLine(entrySel);
+        entryParams.set('mode', 'cart');
+        location.replace(location.pathname + '?' + entryParams.toString());
+        return;
+      }
+    }
+
     // ---- Field sanitation & validation helpers ----
     const icEl    = document.getElementById('checkoutIC');
     const mobEl   = document.getElementById('checkoutMobile');
@@ -1003,7 +1017,14 @@ async function checkoutSubmit() {
   if (useRazorpayOrder) {
     const total = devicePrice + ship;
     const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
-    const installationValue = fromProduct ? (selections.install || '') : 'Self-installation';
+    const ka2 = cartItems.find(i => i && i.sku === 'ka2');
+    const ka2Meta = (ka2 && ka2.ka2) || {};
+    const installationValue = fromProduct
+      ? (selections.install || '')
+      : (ka2 ? (ka2Meta.install || 'Self-installation') : 'Self-installation');
+    const harness = fromProduct
+      ? (selections.model || '')
+      : (ka2 ? (ka2.selection || ka2Meta.model || '') : '');
     const orderBody = appendMetaFields({
       source: fromProduct ? 'product' : 'cart',
       name,
@@ -1015,7 +1036,7 @@ async function checkoutSubmit() {
       postcode,
       country: entry.name || country,
       currency: 'MYR',
-      harness: selections.model || '',
+      harness,
       installation: installationValue,
       deviceprice: devicePrice.toFixed(2),
       shippingrate: ship.toFixed(2),
@@ -1034,6 +1055,12 @@ async function checkoutSubmit() {
         unitPrice: (i.prices[currency] || i.prices.USD || 0).toFixed(2),
         subcategory: i.selection
       }));
+      if (ka2) {
+        orderBody.deviceProperties = JSON.stringify({
+          sim: ka2Meta.sim || '',
+          tradeIn: ka2Meta.tradeIn || ''
+        });
+      }
     }
     const btn = document.getElementById('checkoutBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Opening payment…'; }
@@ -1055,7 +1082,14 @@ async function checkoutSubmit() {
   let lineItems;
 
   const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
-  const installationValue = fromProduct ? (selections.install || "") : "Self-installation";
+  const ka2 = cartItems.find(i => i && i.sku === 'ka2');
+  const ka2Meta = (ka2 && ka2.ka2) || {};
+  const installationValue = fromProduct
+    ? (selections.install || "")
+    : (ka2 ? (ka2Meta.install || "Self-installation") : "Self-installation");
+  const harness = fromProduct
+    ? (selections.model || "")
+    : (ka2 ? (ka2.selection || ka2Meta.model || "") : "");
 
   const otpParams = new URLSearchParams({
     name,
@@ -1067,7 +1101,7 @@ async function checkoutSubmit() {
     postcode,
     country: entry.name || country,
     currency: (currency || 'MYR'),
-    harness: (selections.model || ""),
+    harness,
     installation: installationValue,
     deviceprice:  devicePrice.toFixed(2),
     shippingrate: ship.toFixed(2),
@@ -1084,11 +1118,16 @@ async function checkoutSubmit() {
     lineItems = cartItems.map(i => ({
       name:      i.name,
       quantity:  i.quantity || 1,
-      unitPrice: (i.prices[currency]||i.prices.USD).toFixed(2),
+      unitPrice: (i.prices[currency]||i.prices.USD||0).toFixed(2),
       subcategory: i.selection
     }));
+    if (ka2) {
+      otpParams.append("deviceProperties", JSON.stringify({
+        sim: ka2Meta.sim || "",
+        tradeIn: ka2Meta.tradeIn || ""
+      }));
+    }
   }
-  // Always append cart items when present
   if (lineItems && lineItems.length) {
     otpParams.append("items", JSON.stringify(lineItems));
   }

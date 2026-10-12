@@ -518,9 +518,17 @@ title: Buy KommuAssist 2
     btn.value = JSON.stringify(selections);
     sessionStorage.setItem('checkoutSelections', btn.value);
 
-    const checkoutURL = `{{ '/checkout' | relative_url }}?mode=product`;
-    sessionStorage.setItem('fromProductPage', 'true');
-    window.location.href = checkoutURL;
+    const isRto = /rent-to-own/i.test(selections.payment || '');
+    if (isRto) {
+      if (typeof removeKa2OneOffLine === 'function') removeKa2OneOffLine();
+      sessionStorage.setItem('fromProductPage', 'true');
+      window.location.href = `{{ '/checkout' | relative_url }}?mode=product`;
+      return;
+    }
+
+    if (typeof upsertKa2OneOffLine === 'function') upsertKa2OneOffLine(selections);
+    sessionStorage.setItem('fromProductPage', 'false');
+    window.location.href = `{{ '/checkout' | relative_url }}?mode=cart`;
   }
 
   // --- Product locks (force selections and disable groups) ---

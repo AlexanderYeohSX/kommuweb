@@ -247,6 +247,67 @@
     window.location.href = "{{ '/checkout' | relative_url }}?mode=cart";
   }
 
+  // One-off KommuAssist 2 shares the accessory cart so checkout charges shipping once.
+  function ka2OneOffUnitPrices(selections) {
+    const prices = {};
+    ['MYR', 'USD'].forEach((ccy) => {
+      if (!window.KommuPricing) {
+        prices[ccy] = 0;
+        return;
+      }
+      const ctx = {
+        source: 'product',
+        currency: ccy,
+        payment: 'One-off Purchase',
+        dropdowns: selections
+      };
+      const thenBlock = KommuPricing.matchRule(ctx) || {};
+      const label = thenBlock.auto_apply && thenBlock.auto_apply.promotion && thenBlock.auto_apply.promotion.label;
+      const promoLabels = label ? [label] : [];
+      const device = KommuPricing.getDevicePriceByCurrency(ccy, promoLabels) || 0;
+      const bundled = KommuPricing.getAddonSurchargeFromSelections(selections, ccy, thenBlock);
+      prices[ccy] = device + ((bundled && bundled.total) || 0);
+    });
+    return prices;
+  }
+
+  function upsertKa2OneOffLine(selections) {
+    cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const prices = ka2OneOffUnitPrices(selections);
+    const idx = cart.findIndex(i => i && i.sku === 'ka2');
+    const quantity = idx >= 0 ? (cart[idx].quantity || 1) : 1;
+    const line = {
+      sku: 'ka2',
+      name: 'KommuAssist 2',
+      selection: (selections.model || '').trim(),
+      quantity,
+      image: '/img/products/device/wib-1.png',
+      prices,
+      ka2: {
+        model: selections.model || '',
+        sim: selections.sim || '',
+        tradeIn: selections.tradeIn || '',
+        install: selections.install || '',
+        payment: 'One-off Purchase'
+      }
+    };
+    if (idx >= 0) cart[idx] = line;
+    else cart.unshift(line);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCart();
+    updateCartCount();
+  }
+
+  function removeKa2OneOffLine() {
+    cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const next = cart.filter(i => !i || i.sku !== 'ka2');
+    if (next.length === cart.length) return;
+    cart = next;
+    localStorage.setItem('cart', JSON.stringify(cart));
+    renderCart();
+    updateCartCount();
+  }
+
   function adjustCartWidth() {
     const drawer = document.getElementById('cartDrawer');
     const rows = document.getElementById('cartRows');
