@@ -9,8 +9,8 @@
 - code: AU
   name: Australia
   rates:
-    MYR: 149.00
-    USD: 39.00
+    MYR: 80.00
+    USD: 20.00
 
 - code: AR
   name: Argentina
