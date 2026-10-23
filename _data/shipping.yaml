@@ -96,3 +96,9 @@
     MYR: 85.00
     USD: 21.00
 
+- code: PK
+  name: Pakistan
+  rates:
+    MYR: 259.00
+    USD: 64.00
+
